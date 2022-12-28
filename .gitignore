@@ -1,0 +1,9 @@
+# VS Code settings
+.vscode/
+
+# env files
+*.env
+.env
+
+# Output files
+outputs/
