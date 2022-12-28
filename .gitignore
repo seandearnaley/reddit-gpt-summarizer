@@ -7,3 +7,6 @@
 
 # Output files
 outputs/
+
+# Virtual environment
+scrapestrike/
