@@ -10,3 +10,5 @@ outputs/
 
 # Virtual environment
 scrapestrike/
+
+__pycache__/

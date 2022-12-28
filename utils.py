@@ -1,0 +1,37 @@
+import requests
+from transformers import GPT2Tokenizer
+from bs4 import BeautifulSoup
+import re
+
+# Set up the tokenizer
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+
+# Headers to mimic a browser visit
+headers = {'User-Agent': 'Mozilla/5.0'}
+
+
+def get_token_length(text):
+    tokens = tokenizer.tokenize(text)
+    return len(tokens)
+
+
+def download_parse_reddit_thread(url):
+    # Make a request to the URL and retrieve the HTML content
+    response = requests.get(url, headers=headers)
+    html_content = response.text
+
+    # Parse the HTML content using Beautiful Soup
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    return soup.get_text("|", strip=True).replace("Reply|Share|Report|Save|Follow", "")
+
+
+def generate_filename(title) -> str:
+    # Remove all special characters and spaces from the title
+    filename = re.sub(r'[^\w\s]', '', title)
+    # Replace all remaining spaces with underscores
+    filename = filename.replace(' ', '_')
+    # Shorten the filename if it is too long
+    if len(filename) > 100:
+        filename = filename[:100]
+    return filename
