@@ -11,6 +11,7 @@ headers = {'User-Agent': 'Mozilla/5.0'}
 
 
 def get_token_length(text):
+    # https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
     tokens = tokenizer.tokenize(text)
     return len(tokens)
 

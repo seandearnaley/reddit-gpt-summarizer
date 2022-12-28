@@ -12,8 +12,13 @@ from pathlib import Path
 load_dotenv()
 
 # number of tokens to summarize to
-CHUNK_SIZE = 1600
+CHUNK_SIZE = 2900
 GROUP_LIMIT = 2
+
+# reddit URL/ make sure to add .json to the end of the URL
+REDDIT_URL = 'https://www.reddit.com/r/Futurology/comments/y6od32/artists_say_ai_image_generators_are_copying_their.json'
+
+PROMPT_STRING = 'Building upon this, professionally edit the article, use any additional relevant information provided in the comment thread below, revise, enhance and punctuate. Don\'t include code or commands and optimize for readability.'
 
 openai.organization = os.environ.get("OPENAI_ORG_ID")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -25,7 +30,7 @@ def complete_chunk(prompt) -> str:
     response = openai.Completion.create(
         model="text-davinci-003",
         prompt=prompt,
-        temperature=0.7,
+        temperature=0.9,
         max_tokens=4000-get_token_length(prompt),
         # top_p=1,
         # frequency_penalty=0,
@@ -53,6 +58,7 @@ def concatenate_bodies(contents):
 
 
 def get_body_contents(data, path=[]):
+    # assume 'body' is the key reddit uses for the body content/text
     if isinstance(data, dict):
         if 'body' in data:
             path_str = '/'.join([str(x) for x in path])
@@ -66,8 +72,7 @@ def get_body_contents(data, path=[]):
 
 def main():
     # Make a request to the URL and retrieve the JSON content
-    with requests.get(
-            'https://www.reddit.com/r/technology/comments/zairq3/googles_dreambooth_research_has_led_to_a.json', headers={'User-Agent': 'Mozilla/5.0'}) as response:
+    with requests.get(REDDIT_URL, headers={'User-Agent': 'Mozilla/5.0'}) as response:
         data = response.json()
 
     # Create a JSONPath expression to find the first item with a "title" attribute
@@ -102,14 +107,14 @@ def main():
     output_file_path = os.path.join(output_path, output_filename)
 
     # Use f-strings for string formatting
-    output = f"START\n\n"
+    output = f"START\n\n{PROMPT_STRING}\n\n"
 
     # Use enumerate to get the index and the group in each iteration
     for i, group in enumerate(groups[:GROUP_LIMIT]):
         # Use triple quotes to create a multi-line string
         prompt = f"""{prefix}
 
-Building upon this information, create an article, use any additional relevant information provided in the comment thread below to update/enhance, revise and punctuate.
+{PROMPT_STRING}
 
 COMMENTS BEGIN
 {group}
