@@ -7,6 +7,7 @@
 
 # Output files
 outputs/
+output.json
 
 # Virtual environment
 scrapestrike/
