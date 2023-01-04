@@ -15,25 +15,23 @@ from utils import get_token_length, generate_filename, request_json_from_url
 load_dotenv()
 
 # number of tokens to summarize to
-MAX_CHUNK_SIZE = 2600
-GROUP_LIMIT = 1
+MAX_CHUNK_SIZE = 2500
+MAX_NUMBER_OF_SUMMARIES = 3
 
 # OpenAI Constants
-MODEL_MAX_TOKENS = 4000
+MAX_TOKENS = 4000
 GPT_MODEL = "text-davinci-003"
 
-# reddit URL/ make sure to add .json to the end of the URL
+# reddit URL/ IMPORTANT to add .json to the end of the URL
 REDDIT_URL = (
     "https://www.reddit.com/r/"
-    "LeopardsAteMyFace/comments/101ykfm/bow_before_the_genius_god_of_business.json"
+    "politics/comments/102a8k0/discussion_thread_2023_speaker_of_the_united.json"
 )
 
-PROMPT_STRING = (
-    "Building upon this, professionally edit the article, use any additional relevant information"
-    + " provided in the comment thread below, revise, enhance and make it engaging. Don't include"
-    + " code or commands and optimize for facts as well as readability, share sentiment but"
-    + " remain inpartial."
-)
+INSTRUCTION_TEXT = "Edit the article to include relevant information from \
+the comments, revise and enhance the content, and make it engaging and easy \
+to understand. Avoid including code or commands, and present facts objectively \
+and clearly."
 
 openai.organization = os.environ.get("OPENAI_ORG_ID")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -78,7 +76,7 @@ def get_body_contents(
 def concatenate_bodies(contents: List[Tuple[str, str]]) -> List[str]:
     """
     Concatenate the bodies into an array of newline delimited strings that are
-    ~MAX_CHUNK_SIZE tokens long
+    <MAX_CHUNK_SIZE tokens long
     """
     results = []
     result = ""
@@ -111,12 +109,8 @@ def complete_chunk(prompt: str) -> str:
         model=GPT_MODEL,
         prompt=prompt,
         temperature=0.9,
-        max_tokens=MODEL_MAX_TOKENS - get_token_length(prompt),
-        # top_p=1,
-        # frequency_penalty=0,
-        # presence_penalty=0.6
+        max_tokens=MAX_TOKENS - get_token_length(prompt),
     )
-    # print(response.choices[0].text)
     return response.choices[0].text
 
 
@@ -161,14 +155,17 @@ def main():
     prefix = f"Title: {title}\n{selftext}"
 
     # Use f-strings for string formatting
-    output = f"START\n\n{PROMPT_STRING}\n\n"
+    output = f"START\n\n{INSTRUCTION_TEXT}\n\n"
+
+    # use the first group twice because of top comments
+    groups.insert(0, groups[0])
 
     # Use enumerate to get the index and the group in each iteration
-    for i, group in enumerate(groups[:GROUP_LIMIT]):
+    for i, group in enumerate(groups[:MAX_NUMBER_OF_SUMMARIES]):
         # Use triple quotes to create a multi-line string
         prompt = f"""{prefix}
 
-{PROMPT_STRING}
+{INSTRUCTION_TEXT}
 
 COMMENTS BEGIN
 {group}
@@ -176,10 +173,11 @@ COMMENTS END
 
 Title:"""
         summary = complete_chunk(prompt)
+        # insert the summary into the prefix
         prefix = f"{title}\n\n{summary}\nEND"
         # Use format method to insert values into a string
-        output += f"\n\n============\nSUMMARY COUNT: {i}\n============\n\n"
-        output += summary
+        output += f"\n\n============\nSUMMARY COUNT: {i}\n============\n"
+        output += f"PROMPT: {prompt}\n\n{summary}\n======================================\n\n"
 
     # Use the Path.write_text method to write to the output file
     Path(output_file_path).write_text(output, encoding="utf-8")
