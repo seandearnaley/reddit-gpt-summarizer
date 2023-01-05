@@ -2,6 +2,7 @@
 import re
 import json
 import requests
+from typing import Union
 from transformers import GPT2Tokenizer
 from bs4 import BeautifulSoup
 
@@ -49,7 +50,7 @@ def generate_filename(title) -> str:
     return filename
 
 
-def request_json_from_url(url: str) -> dict:
+def request_json_from_url(url: str) -> Union[dict, None]:
     """
     Make a request to the given URL and return the JSON response.
     """

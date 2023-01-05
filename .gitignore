@@ -1,6 +1,9 @@
 # VS Code settings
 .vscode/
 
+# Pycharm
+.idea/
+
 # env files
 *.env
 .env

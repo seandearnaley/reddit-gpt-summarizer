@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 import re
 from pathlib import Path
-from typing import Generator, Tuple, List, Union
+from typing import Tuple, List, Union
 import openai
 from dotenv import load_dotenv
 from utils import get_token_length, generate_filename, request_json_from_url
@@ -46,22 +46,23 @@ def get_metadata_from_reddit_json(data: dict) -> Tuple[str, str]:
         raise ValueError("Title not found in child data")
     if "selftext" not in child_data:
         raise ValueError("Selftext not found in child data")
-    return (child_data["title"], child_data["selftext"])
+    return child_data["title"], child_data["selftext"]
 
 
 def get_body_contents(
     data: Union[List[Union[dict, str]], dict], path: List[str]
-) -> Generator[Tuple[str, str], int, None]:
+) -> List[Tuple[str, str]]:
     """
     Generator function that yields tuples of the form (path, body_content) for
     all dictionaries in the input data with a key of 'body'.
+    NOTE: path is potentially useful here for indenting the output
     """
     # If data is a dictionary, check if it has a 'body' key
     if isinstance(data, dict):
         if "body" in data:
             # If the dictionary has a 'body' key, yield the path and value of the 'body' key
             path_str = "/".join([str(x) for x in path])
-            yield (path_str, data["body"])
+            yield path_str, data["body"]
         # Iterate through the dictionary's key-value pairs
         for key, value in data.items():
             # Recursively call the function with the value and updated path
@@ -70,7 +71,7 @@ def get_body_contents(
     elif isinstance(data, list):
         for index, item in enumerate(data):
             # Recursively call the function with the element and updated path
-            yield from get_body_contents(item, path + [index])
+            yield from get_body_contents(item, path + [str(index)])
 
 
 def concatenate_bodies(contents: List[Tuple[str, str]]) -> List[str]:
