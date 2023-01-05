@@ -1,6 +1,6 @@
-"""Test reddit.py."""
+"""Test main.py."""
 import pytest
-from reddit import (
+from main import (
     get_metadata_from_reddit_json,
     get_body_contents,
     concatenate_bodies,
