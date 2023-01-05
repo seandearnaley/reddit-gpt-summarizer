@@ -14,5 +14,6 @@ output.json
 
 # Virtual environment
 scrapestrike/
+venv/
 
 __pycache__/

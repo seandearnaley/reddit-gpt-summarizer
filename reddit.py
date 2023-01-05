@@ -3,20 +3,18 @@ This script will take a reddit URL and use OpenAI's GPT-3 model to generate
 a summary of the reddit thread.
 """
 # Import necessary modules
-from datetime import datetime
 import os
 import re
-from pathlib import Path
 from typing import Tuple, List, Union
 import openai
 from dotenv import load_dotenv
-from utils import get_token_length, generate_filename, request_json_from_url
+from utils import get_token_length, request_json_from_url, save_output
 
 load_dotenv()
 
 # number of tokens to summarize to
 MAX_CHUNK_SIZE = 2500
-MAX_NUMBER_OF_SUMMARIES = 3
+MAX_NUMBER_OF_SUMMARIES = 1
 
 # OpenAI Constants
 MAX_TOKENS = 4000
@@ -115,42 +113,10 @@ def complete_chunk(prompt: str) -> str:
     return response.choices[0].text
 
 
-def main():
+def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
     """
-    Main function.
+    Generate a summary of the reddit thread using OpenAI's GPT-3 model.
     """
-    data = request_json_from_url(REDDIT_URL)
-
-    # write raw json output to file
-    Path("output.json").write_text(str(data), encoding="utf-8")
-
-    # get an array of body contents
-    contents = get_body_contents(data, [])
-
-    # concatenate the bodies into an array of newline delimited strings
-    groups = concatenate_bodies(contents)
-
-    # Get the current working directory
-    cwd = os.getcwd()
-
-    # Define the relative path to the output folder
-    output_folder = "outputs"
-
-    # Construct the full path to the output folder
-    output_path = os.path.join(cwd, output_folder)
-
-    # Create the output folder if it does not exist
-    os.makedirs(output_path, exist_ok=True)
-
-    # Get the title and selftext from the reddit thread JSON
-    title, selftext = get_metadata_from_reddit_json(data)
-
-    # Create the output filename with a timestamp
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    output_filename = f"{generate_filename(title)}_{timestamp}.txt"
-
-    # Construct the full path to the output file
-    output_file_path = os.path.join(output_path, output_filename)
 
     # initialize the prefix with the title and selftext of the reddit thread JSON
     prefix = f"Title: {title}\n{selftext}"
@@ -180,10 +146,34 @@ Title:"""
         output += f"\n\n============\nSUMMARY COUNT: {i}\n============\n"
         output += f"PROMPT: {prompt}\n\n{summary}\n======================================\n\n"
 
-    # Use the Path.write_text method to write to the output file
-    Path(output_file_path).write_text(output, encoding="utf-8")
+    return output
+
+
+def main():
+    """
+    Main function.
+    """
+    reddit_json = request_json_from_url(REDDIT_URL)
+
+    # write raw json output to file for debugging
+    with open("output.json", "w", encoding="utf-8") as raw_json_file:
+        raw_json_file.write(str(reddit_json))
+
+    # Get the title and selftext from the reddit thread JSON
+    title, selftext = get_metadata_from_reddit_json(reddit_json)
+
+    # get an array of body contents
+    contents = get_body_contents(reddit_json, [])
+
+    # concatenate the bodies into an array of newline delimited strings
+    groups = concatenate_bodies(contents)
+
+    # Generate the summary
+    output = generate_summary(title, selftext, groups)
 
     print(output)
+
+    save_output(title, output)
 
 
 if __name__ == "__main__":
