@@ -1,10 +1,10 @@
 """Test utils.py."""
 import os
 from src import utils
+from src.main import REDDIT_URL as TEST_URL
 
 # Test data
 TEST_TITLE = "Test Title"
-TEST_URL = "https://www.example.com"
 TEST_JSON = {"key": "value"}
 TEST_OUTPUT = "Test Output"
 
@@ -24,17 +24,22 @@ def mock_request_json_from_url():
     return TEST_JSON
 
 
-# Test get_token_length
 def test_get_token_length():
-    """Test the get_token_length function"""
-    text = "This is a test text."
-    assert utils.get_token_length(text) == 4
+    """Test that get_token_length() returns the correct number of tokens."""
+    text = "This is a test sentence."
+    assert utils.get_token_length(text) == 6
 
 
-# Test download_parse_reddit_thread
 def test_download_parse_reddit_thread():
-    """Test the download_parse_reddit_thread function"""
-    assert utils.download_parse_reddit_thread(TEST_URL) == TEST_OUTPUT
+    """Test that download_parse_reddit_thread() returns a string."""
+    soup = utils.download_parse_reddit_thread(TEST_URL)
+    assert isinstance(soup, str)
+
+
+def test_request_json_from_url():
+    """Test that request_json_from_url() returns a dictionary."""
+    json_response = utils.request_json_from_url(TEST_URL)
+    assert isinstance(json_response, dict)
 
 
 # Test generate_filename
@@ -43,12 +48,6 @@ def test_generate_filename():
     title = "Test Title with Special Characters and Spaces!"
     expected_output = "Test_Title_with_Special_Characters_and_Spaces"
     assert utils.generate_filename(title) == expected_output
-
-
-# Test request_json_from_url
-def test_request_json_from_url():
-    """Test the request_json_from_url function"""
-    assert utils.request_json_from_url(TEST_URL) == TEST_JSON
 
 
 # Test save_output

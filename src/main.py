@@ -8,7 +8,8 @@ import re
 from typing import Tuple, List, Union
 import openai
 from dotenv import load_dotenv
-from utils import get_token_length, request_json_from_url, save_output
+from src.utils import get_token_length, request_json_from_url, save_output
+
 
 load_dotenv()
 
