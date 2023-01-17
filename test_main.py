@@ -1,4 +1,4 @@
-"""Test main.py."""
+"""Test main.py with pytest."""
 import pytest
 from main import (
     get_metadata_from_reddit_json,
