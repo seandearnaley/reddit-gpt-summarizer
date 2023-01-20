@@ -2,7 +2,7 @@
 
 ## warning potentially expensive, be careful
 
-This script is used to generate summaries of Reddit threads by using the OpenAI API to complete chunks of text based on a prompt. It starts by making a request to a specified Reddit thread, extracting the title and self text, and then finding all of the comments in the thread. These comments are then concatenated into groups of a specified number of tokens, and a summary is generated for each group by prompting the OpenAI API with the group's text and the title and self text of the Reddit thread. The summaries are then saved to a file in an `outputs` folder in the current working directory.
+This script is used to generate summaries of Reddit threads by using the OpenAI API to complete chunks of text based on a prompt with recursive summarization. It starts by making a request to a specified Reddit thread, extracting the title and self text, and then finding all of the comments in the thread. These comments are then concatenated into groups of a specified number of tokens, and a summary is generated for each group by prompting the OpenAI API with the group's text and the title and self text of the Reddit thread. The summaries are then saved to a file in an `outputs` folder in the current working directory.
 
 ## Requirements
 
