@@ -21,10 +21,9 @@ MAX_NUMBER_OF_SUMMARIES = 1
 MAX_TOKENS = 4000
 GPT_MODEL = "text-davinci-003"
 
-# reddit URL/ IMPORTANT to add .json to the end of the URL
-REDDIT_URL = (
-    "https://www.reddit.com/r/"
-    "politics/comments/102a8k0/discussion_thread_2023_speaker_of_the_united.json"
+# reddit thread ID
+THREAD_ID = (
+    "politics/comments/102a8k0/discussion_thread_2023_speaker_of_the_united"
 )
 
 INSTRUCTION_TEXT = "Edit the article to include relevant information from \
@@ -154,7 +153,7 @@ def main():
     """
     Main function.
     """
-    reddit_json = request_json_from_url(REDDIT_URL)
+    reddit_json = request_json_from_url(f"https://www.reddit.com/r/{THREAD_ID}.json")
 
     # write raw json output to file for debugging
     with open("output.json", "w", encoding="utf-8") as raw_json_file:
