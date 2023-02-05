@@ -5,31 +5,42 @@ a summary of the reddit thread.
 # Import necessary modules
 import os
 import re
+from datetime import datetime
 from typing import Tuple, List, Union
 import openai
 from dotenv import load_dotenv
-from src.utils import get_token_length, request_json_from_url, save_output
+from reddit_gpt_summarizer.utils import (
+    get_token_length,
+    request_json_from_url,
+    save_output,
+)
 
 
 load_dotenv()
 
 # number of tokens to summarize to
 MAX_CHUNK_SIZE = 2500
-MAX_NUMBER_OF_SUMMARIES = 1
+MAX_NUMBER_OF_SUMMARIES = 3
 
 # OpenAI Constants
 MAX_TOKENS = 4000
 GPT_MODEL = "text-davinci-003"
 
 # reddit thread ID
-THREAD_ID = (
-    "politics/comments/102a8k0/discussion_thread_2023_speaker_of_the_united"
-)
+THREAD_ID = "interestingasfuck/comments/10tp8j7/the_chinese_balloon_shot_down"
+REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}.json"
 
-INSTRUCTION_TEXT = "Edit the article to include relevant information from \
+# first token from THREAD_ID is the subreddit name
+SUBREDDIT = THREAD_ID.split("/", maxsplit=1)[0]
+
+todays_date = datetime.now().strftime("%Y-%m-%d")
+
+INSTRUCTION_TEXT = f"(Todays Date: {datetime.now().strftime('%Y-%m-%d')}) \
+Edit the article to include relevant information from \
 the comments, revise and enhance the content, and make it engaging and easy \
 to understand. Avoid including code or commands, and present facts objectively \
-and clearly."
+and clearly. Include a summary of reddit comments.  Represent accurate public sentiment. \
+Quote reddit users as necessary."
 
 openai.organization = os.environ.get("OPENAI_ORG_ID")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -60,7 +71,7 @@ def get_body_contents(
         if "body" in data:
             # If the dictionary has a 'body' key, yield the path and value of the 'body' key
             path_str = "/".join([str(x) for x in path])
-            yield path_str, data["body"]
+            yield path_str, data["author"] + " - " + data["body"]
         # Iterate through the dictionary's key-value pairs
         for key, value in data.items():
             # Recursively call the function with the value and updated path
@@ -121,8 +132,7 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
     # initialize the prefix with the title and selftext of the reddit thread JSON
     prefix = f"Title: {title}\n{selftext}"
 
-    # Use f-strings for string formatting
-    output = f"START\n\n{INSTRUCTION_TEXT}\n\n"
+    output = ""
 
     # use the first group twice because of top comments
     groups.insert(0, groups[0])
@@ -130,18 +140,17 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
     # Use enumerate to get the index and the group in each iteration
     for i, group in enumerate(groups[:MAX_NUMBER_OF_SUMMARIES]):
         # Use triple quotes to create a multi-line string
-        prompt = f"""{prefix}
+        prompt = f"""{INSTRUCTION_TEXT}\n\n{prefix}
 
-{INSTRUCTION_TEXT}
-
-COMMENTS BEGIN
+r/{SUBREDDIT}
+REDDIT COMMENTS BEGIN
 {group}
-COMMENTS END
+REDDIT COMMENTS END
 
-Title:"""
+Title: """
         summary = complete_chunk(prompt)
         # insert the summary into the prefix
-        prefix = f"{title}\n\n{summary}\nEND"
+        prefix = f"BEGIN\n\nTitle:{summary}\n\nEND"
         # Use format method to insert values into a string
         output += f"\n\n============\nSUMMARY COUNT: {i}\n============\n"
         output += f"PROMPT: {prompt}\n\n{summary}\n======================================\n\n"
@@ -153,7 +162,7 @@ def main():
     """
     Main function.
     """
-    reddit_json = request_json_from_url(f"https://www.reddit.com/r/{THREAD_ID}.json")
+    reddit_json = request_json_from_url(REDDIT_URL)
 
     # write raw json output to file for debugging
     with open("output.json", "w", encoding="utf-8") as raw_json_file:

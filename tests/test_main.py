@@ -1,6 +1,8 @@
 """Test main.py."""
 import pytest
-from src.main import (
+
+
+from reddit_gpt_summarizer.main import (
     get_metadata_from_reddit_json,
     get_body_contents,
     concatenate_bodies,
@@ -71,7 +73,6 @@ def test_concatenate_bodies():
     assert concatenate_bodies(contents) == expected_output
 
     # Test correct output when bodies are longer than MAX_CHUNK_SIZE tokens
-    # TODO: Implement this test
 
     # Test correct output when no bodies are present
     contents = []
