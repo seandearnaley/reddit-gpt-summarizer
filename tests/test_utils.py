@@ -1,9 +1,8 @@
 """Test utils.py."""
 import os
 from reddit_gpt_summarizer.utils import (
-    get_token_length,
+    num_tokens_from_string,
     request_json_from_url,
-    download_parse_reddit_thread,
     generate_filename,
     save_output,
 )
@@ -16,7 +15,7 @@ TEST_JSON = {"key": "value"}
 TEST_OUTPUT = "Test Output"
 
 # Mocks
-def mock_get_token_length(text):
+def mock_num_tokens_from_string(text):
     """Mock function to return the number of words in the given text"""
     return len(text.split())
 
@@ -31,16 +30,10 @@ def mock_request_json_from_url():
     return TEST_JSON
 
 
-def test_get_token_length():
-    """Test that get_token_length() returns the correct number of tokens."""
+def test_num_tokens_from_string():
+    """Test that num_tokens_from_string() returns the correct number of tokens."""
     text = "This is a test sentence."
-    assert get_token_length(text) == 6
-
-
-def test_download_parse_reddit_thread():
-    """Test that download_parse_reddit_thread() returns a string."""
-    soup = download_parse_reddit_thread(TEST_URL)
-    assert isinstance(soup, str)
+    assert num_tokens_from_string(text, "gpt2") == 6
 
 
 def test_request_json_from_url():

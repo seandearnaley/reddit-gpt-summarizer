@@ -1,43 +1,25 @@
 """Utility functions for the Reddit Scraper project."""
 import re
 import os
+import sys
 import json
 from datetime import datetime
-from typing import Union
+from typing import Dict, Any
+import tiktoken
 import requests
-from transformers import GPT2Tokenizer
-from bs4 import BeautifulSoup
-
-
-# Set up the tokenizer
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
 # Headers to mimic a browser visit
 headers = {"User-Agent": "Mozilla/5.0"}
 
 
-def get_token_length(text):
+def num_tokens_from_string(string: str, encoding_name: str) -> int:
     """
-    Get the number of tokens in the given text.
+    Returns the number of tokens in a text string.
     https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
     """
-    tokens = tokenizer.tokenize(text)
-    return len(tokens)
-
-
-def download_parse_reddit_thread(url):
-    """
-    Download the HTML content of the reddit thread and parse it using Beautiful Soup.
-    """
-    response = requests.get(url, headers=headers, timeout=10)
-    html_content = response.text
-
-    # Parse the HTML content using Beautiful Soup
-    soup = BeautifulSoup(html_content, "html.parser")
-
-    return soup.get_text("|", strip=True).replace(
-        "Reply|Share|Report|Save|Follow", ""
-    )
+    encoding = tiktoken.get_encoding(encoding_name)
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
 
 
 def generate_filename(title) -> str:
@@ -52,7 +34,7 @@ def generate_filename(title) -> str:
     return filename
 
 
-def request_json_from_url(url: str) -> Union[dict, None]:
+def request_json_from_url(url: str) -> Dict[str, Any]:
     """
     Make a request to the given URL and return the JSON response.
     """
@@ -63,10 +45,10 @@ def request_json_from_url(url: str) -> Union[dict, None]:
                 data = response.json()
             except json.decoder.JSONDecodeError as err:
                 print(f"There was an error decoding the JSON response: {err}")
-                return None
+                sys.exit(1)
     except requests.exceptions.RequestException as err:
         print(f"There was an error making the request: {err}")
-        return None
+        sys.exit(1)
 
     return data
 
