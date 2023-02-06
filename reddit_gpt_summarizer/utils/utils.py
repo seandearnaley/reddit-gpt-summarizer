@@ -8,8 +8,7 @@ from typing import Dict, Any
 import tiktoken
 import requests
 
-# Headers to mimic a browser visit
-headers = {"User-Agent": "Mozilla/5.0"}
+HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 
 def num_tokens_from_string(string: str, encoding_name: str) -> int:
@@ -40,7 +39,7 @@ def request_json_from_url(url: str) -> Dict[str, Any]:
     """
     json_data = {}
     try:
-        with requests.get(url, headers=headers, timeout=10) as response:
+        with requests.get(url, headers=HEADERS, timeout=10) as response:
             response.raise_for_status()
             try:
                 json_data = response.json()

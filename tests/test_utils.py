@@ -10,6 +10,7 @@ from reddit_gpt_summarizer.utils import (
     request_json_from_url,
     generate_filename,
     save_output,
+    HEADERS,
 )
 
 
@@ -53,9 +54,7 @@ def test_request_json_from_url():
 
         result = request_json_from_url(url)
 
-        mock_get.assert_called_once_with(
-            url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10
-        )
+        mock_get.assert_called_once_with(url, headers=HEADERS, timeout=10)
         mock_response.raise_for_status.assert_called_once()
         mock_response.json.assert_called_once()
 
@@ -75,9 +74,7 @@ def test_request_json_from_url_request_exception():
             except SystemExit:
                 mock_exit.assert_called_once_with(1)
 
-            mock_get.assert_called_once_with(
-                url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10
-            )
+            mock_get.assert_called_once_with(url, headers=HEADERS, timeout=10)
 
 
 def test_request_json_from_url_json_decode_error():
@@ -96,9 +93,7 @@ def test_request_json_from_url_json_decode_error():
         with mock.patch.object(sys, "exit") as mock_exit:
             request_json_from_url(url)
 
-            mock_get.assert_called_once_with(
-                url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10
-            )
+            mock_get.assert_called_once_with(url, headers=HEADERS, timeout=10)
             mock_response.raise_for_status.assert_called_once()
             mock_response.json.assert_called_once()
             mock_exit.assert_called_once_with(1)
@@ -117,7 +112,7 @@ def test_save_output():
     ) as mock_open, mock.patch(
         "pathlib.Path.exists"
     ) as mock_exists, mock.patch(
-        "utils.get_timestamp"
+        "reddit_gpt_summarizer.utils.get_timestamp"
     ) as mock_get_timestamp:
 
         mock_get_timestamp.return_value = timestamp

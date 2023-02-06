@@ -116,14 +116,16 @@ def complete_chunk(prompt: str) -> str:
     Returns:
         str: The completed chunk of text.
     """
-    print("prompt=" + prompt)
-    print("token length: " + str(num_tokens_from_string(prompt, "gpt2")))
+    num_tokens = num_tokens_from_string(prompt, "gpt2")
     response = openai.Completion.create(
         model=GPT_MODEL,
         prompt=prompt,
         temperature=0.9,
-        max_tokens=MAX_TOKENS - num_tokens_from_string(prompt, "gpt2"),
+        max_tokens=MAX_TOKENS - num_tokens,
     )
+    print("prompt=" + prompt)
+    print("token length: " + str(num_tokens))
+
     return response.choices[0].text
 
 

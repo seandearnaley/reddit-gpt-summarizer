@@ -6,4 +6,5 @@ from .utils import (
     generate_filename,
     save_output,
     get_timestamp,
+    HEADERS,
 )
