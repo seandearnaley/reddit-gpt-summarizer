@@ -46,18 +46,21 @@ def test_get_body_contents():
     """Test get_body_contents()."""
     # Test correct output with list as input
     data = [
-        {"key1": "value1", "key2": "value2", "body": "Test Body"},
-        {"key3": "value3", "key4": "value4", "body": "Test Body 2"},
+        {"key1": "value1", "author": "author 1", "body": "Test Body"},
+        {"key3": "value3", "author": "author 2", "body": "Test Body 2"},
     ]
-    expected_output = [("0", "Test Body"), ("1", "Test Body 2")]
+    expected_output = [
+        ("0", "[author 1] Test Body"),
+        ("1", "[author 2] Test Body 2"),
+    ]
     assert list(get_body_contents(data, [])) == expected_output
 
     # Test correct output with dictionary as input
     data = {
         "key1": "value1",
-        "key2": {"key3": {"key4": "value4", "body": "Test Body"}},
+        "key2": {"key3": {"author": "author 1", "body": "Test Body"}},
     }
-    expected_output = [("key2/key3", "Test Body")]
+    expected_output = [("key2/key3", "[author 1] Test Body")]
     assert list(get_body_contents(data, [])) == expected_output
 
 

@@ -143,8 +143,8 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
     # Use enumerate to get the index and the group in each iteration
     for i, group in enumerate(groups[:MAX_NUMBER_OF_SUMMARIES]):
         prompt = (
-            f"{INSTRUCTION_TEXT}\n\n{prefix}\n\nr/{SUBREDDIT}\n"
-            f"REDDIT COMMENTS BEGIN\n{group}\nREDDIT COMMENTS END\n\n"
+            f"{INSTRUCTION_TEXT}\n\n{prefix}\n\nr/{SUBREDDIT} on REDDIT\n"
+            f"COMMENTS BEGIN\n{group}\nCOMMENTS END\n\n"
             "Title: "
         )
         summary = complete_chunk(prompt)

@@ -38,19 +38,26 @@ def request_json_from_url(url: str) -> Dict[str, Any]:
     """
     Make a request to the given URL and return the JSON response.
     """
+    json_data = {}
     try:
         with requests.get(url, headers=headers, timeout=10) as response:
             response.raise_for_status()
             try:
-                data = response.json()
+                json_data = response.json()
             except json.decoder.JSONDecodeError as err:
                 print(f"There was an error decoding the JSON response: {err}")
+
                 sys.exit(1)
     except requests.exceptions.RequestException as err:
         print(f"There was an error making the request: {err}")
         sys.exit(1)
 
-    return data
+    return json_data
+
+
+def get_timestamp() -> str:
+    """Get a timestamp in the format YYYYMMDDHHMMSS."""
+    return datetime.now().strftime("%Y%m%d%H%M%S")
 
 
 def save_output(title: str, output: str) -> str:
@@ -71,8 +78,7 @@ def save_output(title: str, output: str) -> str:
     os.makedirs(output_path, exist_ok=True)
 
     # Create the output filename with a timestamp
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    output_filename = f"{generate_filename(title)}_{timestamp}.txt"
+    output_filename = f"{generate_filename(title)}_{get_timestamp()}.txt"
 
     # Construct the full path to the output file
     output_file_path = os.path.join(output_path, output_filename)
