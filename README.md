@@ -2,43 +2,68 @@
 
 ## warning potentially expensive, be careful
 
+A python project that uses OpenAI's GPT-3 model to generate a summary of a Reddit thread based on its comments. The project is built using poetry and makes use of various other tools like dotenv and tiktoken.
+
 This script is used to generate summaries of Reddit threads by using the OpenAI API to complete chunks of text based on a prompt with recursive summarization. It starts by making a request to a specified Reddit thread, extracting the title and self text, and then finding all of the comments in the thread. These comments are then concatenated into groups of a specified number of tokens, and a summary is generated for each group by prompting the OpenAI API with the group's text and the title and self text of the Reddit thread. The summaries are then saved to a file in an `outputs` folder in the current working directory.
 
-## Requirements
+## Prerequisites
 
-- Python 3.8 or higher
-- `openai` module
-- `dotenv` module
-- API key for OpenAI
+- Python 3.8 or later
+- OpenAI API Key
+- Poetry
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/[USERNAME]/reddit-summary-generator.git`
-2. Navigate to the project directory: `cd reddit-summary-generator`
-3. Install the necessary modules: `pip install -r requirements.txt`
-4. Create a `.env` file in the root directory and add the following environment variables:
-    - `OPENAI_ORG_ID`: your OpenAI organization ID
-    - `OPENAI_API_KEY`: your OpenAI API key
+1. Clone the repository
 
-## Configuration Parameters
+`$ git clone https://github.com/<username>/reddit-gpt-summarizer.git`
 
-The following parameters can be modified in `main.py` to customize the summary generation process:
+2. Change into the project directory
 
-- `MAX_CHUNK_SIZE`: the maximum number of tokens that can be included in a single summary chunk.
-- `MAX_NUMBER_OF_SUMMARIES`: the maximum number of summaries to generate.
-- `MAX_TOKENS`: the maximum number of tokens that can be used in a single OpenAI request.
-- `GPT_MODEL`: the OpenAI GPT-3 model to use for generating the summary.
-- `INSTRUCTION_TEXT`: the text to provide to the OpenAI model as a prompt.
+`$ cd reddit-gpt-summarizer`
 
-## Constants
+3. Create a virtual environment
 
-The following constants are used in the script:
+`$ poetry shell`
 
-- `REDDIT_URL`: the URL of the Reddit thread to summarize.
-- `openai.organization`: the OpenAI organization ID.
-- `openai.api_key`: the OpenAI API key.
+4. Install the dependencies
 
-## Notes
+`$ poetry install`
 
-- The script uses the `text-davinci-003` model to generate summaries.
-- The script uses the `dotenv` library to load environment variables from a `.env` file. More information about this library and how to use it can be found [here](https://pypi.org/project/python-dotenv/).
+5. Create a `.env` file in the project root directory and add the following environment variables:
+
+`OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
+`OPENAI_ORG_ID=<YOUR_OPENAI_ORG_ID>`
+
+## Usage
+
+1. Run the `main.py` script
+
+`$ python reddit_gpt_summarizer/main.py`
+
+The script will take a Reddit URL and use OpenAI's GPT-3 model to generate a summary of the Reddit thread based on its comments. The summary will be displayed in the console and also saved to a file in the `outputs` folder.
+
+## Tests
+
+The project contains tests for the `main.py` and `utils.py` scripts. To run the tests, use the following command:
+
+`$ poetry run pytest`
+
+## Output
+
+The output is saved as a text file in the `outputs` folder with the title of the Reddit thread and a timestamp in the filename.
+
+## Folder Structure
+
+- outputs: folder containing the generated summary files
+- reddit_gpt_summarizer: folder containing the main script and the utilities
+  - utils: folder containing utility functions
+  - main.py: script that uses OpenAI's GPT-3 model to generate a summary of a Reddit thread
+  - output.json: raw json output of the Reddit thread for debugging purposes
+- tests: folder containing test files
+- .env: file containing the environment variables for OpenAI's API key and organization ID
+- .gitignore: file specifying files to be ignored by Git
+- README.md: file containing documentation for the project
+- poetry.lock: file containing poetry's project dependencies and version information
+- pyproject.toml: file containing project metadata and dependencies
+- requirements.txt: file containing the project's dependencies in pip format

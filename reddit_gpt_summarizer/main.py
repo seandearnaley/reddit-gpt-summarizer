@@ -23,8 +23,8 @@ except FileNotFoundError:
     sys.exit(1)
 
 # Constants
-MAX_CHUNK_SIZE = 1900
-MAX_NUMBER_OF_SUMMARIES = 2
+MAX_CHUNK_SIZE = 2000
+MAX_NUMBER_OF_SUMMARIES = 4
 MAX_TOKENS = 4000
 GPT_MODEL = "text-davinci-003"
 THREAD_ID = "interestingasfuck/comments/10tp8j7/the_chinese_balloon_shot_down"
@@ -151,7 +151,7 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
         )
         summary = complete_chunk(prompt)
         # insert the summary into the prefix
-        prefix = f"BEGIN\n\nTitle:{summary}\n\nEND"
+        prefix = f"Title:{summary}"
         # Use format method to insert values into a string
         output += f"\n\n============\nSUMMARY COUNT: {i}\n============\n"
         output += f"PROMPT: {prompt}\n\n{summary}\n======================================\n\n"
