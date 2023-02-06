@@ -32,8 +32,10 @@ This script is used to generate summaries of Reddit threads by using the OpenAI 
 
 5. Create a `.env` file in the project root directory and add the following environment variables:
 
-`OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
-`OPENAI_ORG_ID=<YOUR_OPENAI_ORG_ID>`
+```
+OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
+OPENAI_ORG_ID=<YOUR_OPENAI_ORG_ID>
+```
 
 ## Usage
 
