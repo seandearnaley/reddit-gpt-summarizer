@@ -1,11 +1,10 @@
 """Test main.py."""
 import pytest
 
-
 from reddit_gpt_summarizer.main import (
-    get_metadata_from_reddit_json,
     get_body_contents,
-    concatenate_bodies,
+    get_metadata_from_reddit_json,
+    group_bodies_into_chunks,
 )
 
 
@@ -30,9 +29,7 @@ def test_get_metadata_from_reddit_json():
     assert get_metadata_from_reddit_json(data) == expected_output
 
     # Test ValueError raised when title not found
-    data = {
-        0: {"data": {"children": [{"data": {"selftext": "Test Selftext"}}]}}
-    }
+    data = {0: {"data": {"children": [{"data": {"selftext": "Test Selftext"}}]}}}
     with pytest.raises(ValueError):
         get_metadata_from_reddit_json(data)
 
@@ -44,14 +41,16 @@ def test_get_metadata_from_reddit_json():
 
 def test_get_body_contents():
     """Test get_body_contents()."""
-    # Test correct output with list as input
-    data = [
-        {"key1": "value1", "author": "author 1", "body": "Test Body"},
-        {"key3": "value3", "author": "author 2", "body": "Test Body 2"},
-    ]
+    # Test correct output with dictionary as input
+    data = {
+        "list": [
+            {"key1": "value1", "author": "author 1", "body": "Test Body"},
+            {"key3": "value3", "author": "author 2", "body": "Test Body 2"},
+        ]
+    }
     expected_output = [
-        ("0", "[author 1] Test Body"),
-        ("1", "[author 2] Test Body 2"),
+        ("list/0", "[author 1] Test Body"),
+        ("list/1", "[author 2] Test Body 2"),
     ]
     assert list(get_body_contents(data, [])) == expected_output
 
@@ -64,8 +63,8 @@ def test_get_body_contents():
     assert list(get_body_contents(data, [])) == expected_output
 
 
-def test_concatenate_bodies():
-    """Test concatenate_bodies()."""
+def test_group_bodies_into_chunks():
+    """Test group_bodies_into_chunks()."""
     # Test correct output
     contents = [
         ("path1", "Test Body 1"),
@@ -73,16 +72,16 @@ def test_concatenate_bodies():
         ("path3", "Test Body 3"),
     ]
     expected_output = ["Test Body 1\nTest Body 2\nTest Body 3\n"]
-    assert concatenate_bodies(contents) == expected_output
+    assert group_bodies_into_chunks(contents) == expected_output
 
     # Test correct output when bodies are longer than MAX_CHUNK_SIZE tokens
 
     # Test correct output when no bodies are present
     contents = []
     expected_output = []
-    assert concatenate_bodies(contents) == expected_output
+    assert group_bodies_into_chunks(contents) == expected_output
 
     # Test correct output when only one body is present
     contents = [("path1", "Test Body 1")]
     expected_output = ["Test Body 1\n"]
-    assert concatenate_bodies(contents) == expected_output
+    assert group_bodies_into_chunks(contents) == expected_output

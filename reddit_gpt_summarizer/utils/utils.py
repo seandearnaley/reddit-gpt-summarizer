@@ -1,17 +1,18 @@
 """Utility functions for the Reddit Scraper project."""
-import re
-import os
-import sys
 import json
+import os
+import re
+import sys
 from datetime import datetime
-from typing import Dict, Any
-import tiktoken
+from typing import Any, Dict
+
 import requests
+import tiktoken
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 
-def num_tokens_from_string(string: str, encoding_name: str) -> int:
+def num_tokens_from_string(string: str, encoding_name: str = "gpt2") -> int:
     """
     Returns the number of tokens in a text string.
     https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
@@ -86,3 +87,15 @@ def save_output(title: str, output: str) -> str:
         output_file.write(output)
 
     return output_file_path
+
+
+def estimate_word_count(num_tokens):
+    """
+    Given the number of GPT-2 tokens, estimates the real word count.
+    """
+    # The average number of real words per token for GPT-2 is 0.56, according to OpenAI.
+    # Multiply the number of tokens by this average to estimate the total number of real
+    # words.
+    estimated_word_count = round(num_tokens * 0.56)
+
+    return estimated_word_count
