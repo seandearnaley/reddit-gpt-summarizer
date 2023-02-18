@@ -28,13 +28,12 @@ except FileNotFoundError:
 
 # Constants
 MAX_CHUNK_TOKEN_SIZE = 2000
-MAX_BODY_TOKEN_SIZE = 1000
-MAX_NUMBER_OF_SUMMARIES = 3
-MAX_TOKENS = 4000
-
-GPT_MODEL = "text-davinci-003"
+MAX_BODY_TOKEN_SIZE = 1000  # not in use yet
+MAX_NUMBER_OF_SUMMARIES = 3  # reduce this to 1 for testing
+MAX_TOKENS = 4000  # max number of tokens for GPT-3
+GPT_MODEL = "text-davinci-003"  # GPT-3 model to use
 THREAD_ID = "webdev/comments/8sumel/free_web_development_tutorials_for_those_who_are"
-REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}.json"
+REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}.json"  # URL of reddit thread
 SUBREDDIT = THREAD_ID.split("/", maxsplit=1)[0]
 
 INSTRUCTION_TEXT = (
@@ -74,7 +73,7 @@ def get_body_contents(
     path: List[str],
 ) -> List[Tuple[str, str]]:
     """
-    Generator function that yields tuples of the form (path, body_content) for
+    function that returns tuples of the form (path, body_content) for
     all dictionaries in the input data with a key of 'body'.
     NOTE: path is potentially useful here for indenting the output
     """
