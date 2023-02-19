@@ -761,6 +761,17 @@ files = [
 cli = ["click (>=5.0)"]
 
 [[package]]
+name = "ratelimit"
+version = "2.2.1"
+description = "API rate limit decorator"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "ratelimit-2.2.1.tar.gz", hash = "sha256:af8a9b64b821529aca09ebaf6d8d279100d766f19e90b5059ac6a718ca6dee42"},
+]
+
+[[package]]
 name = "regex"
 version = "2022.10.31"
 description = "Alternative regular expression module, to replace re."
@@ -1096,4 +1107,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "b8a021e6ca3f71b6688ea257d18ef0e21a93d2ed1972cbecbed297c6033608d8"
+content-hash = "61b6283fd795982f6b8b042f48e082bd07b35040e49df001b130be5f2f1174db"

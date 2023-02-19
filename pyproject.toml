@@ -11,6 +11,7 @@ requests = "^2.28.2"
 openai = "^0.26.4"
 python-dotenv = "^0.21.1"
 tiktoken = "^0.2.0"
+ratelimit = "^2.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"

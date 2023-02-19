@@ -8,6 +8,9 @@
 *.env
 .env
 
+# Input files
+inputs/
+
 # Output files
 outputs/
 output.json

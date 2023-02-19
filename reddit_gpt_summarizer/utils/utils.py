@@ -62,8 +62,8 @@ def get_timestamp() -> str:
 
 def save_output(title: str, output: str) -> str:
     """
-    Save the output to a file in current working dir. The filename will be the title
-    with a timestamp appended to it.
+    Save the output to a file in current working dir. The filename will
+    be the generated from the title, santized with a timestamp appended to it.
     """
     # Get the current working directory
     cwd = os.getcwd()
