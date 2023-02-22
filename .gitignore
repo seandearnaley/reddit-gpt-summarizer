@@ -8,6 +8,9 @@
 *.env
 .env
 
+# log files
+logs/
+
 # Input files
 inputs/
 

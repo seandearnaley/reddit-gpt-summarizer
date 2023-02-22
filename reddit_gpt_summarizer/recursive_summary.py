@@ -12,9 +12,13 @@ import openai
 from dotenv import load_dotenv
 from ratelimit import limits, sleep_and_retry
 
-from reddit_gpt_summarizer.utils.utils import num_tokens_from_string
+from reddit_gpt_summarizer.utils.utils import (
+    estimate_word_count,
+    num_tokens_from_string,
+)
 
 # Constants
+SUMMARY_SIZE = 500
 MAX_CHUNK_TOKEN_SIZE = 1000
 MAX_TOKENS = 2049  # max number of token (note: text-curie-001 has a max of 2048)
 GPT_MODEL = "text-curie-001"  # GPT-3 model to use
@@ -73,23 +77,32 @@ def write_text_file(text: str, filename: str):
 
 
 @token_bucket_rate_limit
-def summarize_text(text: str, max_token_length: int) -> str:
+def summarize_text(
+    text: str, max_token_length: int, max_tokens: int = MAX_TOKENS
+) -> str:
     """
     Summarize the prompt using GPT-3.
     """
 
     original_num_tokens = num_tokens_from_string(text)
 
+    summary_size = max_token_length if max_token_length <= max_tokens else max_tokens
+
     def recursive_summarization(chunk_text: str, prefix_text: str = "") -> str:
         summary_string = (
-            f"```{prefix_text}```\n"
-            + "in light of new data:\n\n```"
+            f"```{prefix_text}```\n\n"
+            + "new text:\n\n```"
             # + f"{estimate_word_count(max_token_length)} words:\n"
             + chunk_text
-            + "```\n\nformat and summarize then append to text "
-            + "[don't include last summary, just continue summarizing new content], "
-            + "try to reduce the length by just half:\n\n"
+            + "```\n\nsummarize then append to last text, write close to [replace] "
+            " words, use extractive summarization if you have too much text, use"
+            " abstractive summarization (no gibberish) if you don't have enough:\n\n```"
         )
+
+        summary_string = summary_string.replace(
+            "[replace]", str(estimate_word_count(summary_size))
+        )
+
         response: Dict[str, Any] = openai.Completion.create(  # type: ignore
             model=GPT_MODEL,
             prompt=summary_string,
@@ -119,30 +132,42 @@ def summarize_text(text: str, max_token_length: int) -> str:
     print("num_tokens=", num_tokens, "original_num_tokens=", original_num_tokens)
 
     if num_tokens > max_token_length:
-        # iterate again, try again
+        # iterate again, EXPENSIVE try again
         print("dividing prompt")
         return summarize_text(result, max_token_length)
 
     return result
 
 
-def cleanup_summary(text: str) -> str:
+def cleanup_summary(text: str, summary_size: int, max_tokens: int = MAX_TOKENS) -> str:
     """
     Cleanup the summary using GPT-3.
+
+    Args:
+        text (str): The text to summarize.
+        summary_size (int): The desired summary size in tokens.
+        max_tokens (int): The maximum number of tokens to use.
     """
-    # estimated_word_count = estimate_word_count(num_tokens_from_string(text))
+
+    summary_size = summary_size if summary_size <= max_tokens else max_tokens
 
     cleanup_prompt = (
         "cleanup this machine generated summarization, notably "
-        + f"in the ligatures between passages:\n```{text}```"
+        + "in the ligatures between passages, write close to [replace] words, use"
+        " extractive summarization if you have too much text, use abstractive"
+        " summarization if you don't have enough, no gibberish or bad"
+        f" formatting:\n```{text}```"
+    )
+
+    cleanup_prompt = cleanup_prompt.replace(
+        "[replace]", str(estimate_word_count(summary_size))
     )
 
     response: Dict[str, Any] = openai.Completion.create(  # type: ignore
         model="text-davinci-003",
         prompt=cleanup_prompt,
-        # frequency_penalty=0.9,
-        # presence_penalty=0.9,
-        max_tokens=4000 - num_tokens_from_string(cleanup_prompt),
+        best_of=3,
+        max_tokens=max_tokens - num_tokens_from_string(cleanup_prompt),
     )
     if len(response) == 0:
         print("response error=", response)  # error
@@ -154,9 +179,9 @@ def cleanup_summary(text: str) -> str:
 
 
 print("go")
-filetext = load_text_file("../inputs/The Adventures of Sherlock Holmes.txt")
-output = summarize_text(filetext, 6000)
-# cleanup = cleanup_summary(output)
+filetext = load_text_file("../inputs/HomeSummary.txt")
+output = summarize_text(filetext, SUMMARY_SIZE)
+output = cleanup_summary(output, SUMMARY_SIZE)  # perform a cleanup pass
 
 path = write_text_file(output, "../outputs/recursive_summary_test_output.txt")
 print("Output written to", path)

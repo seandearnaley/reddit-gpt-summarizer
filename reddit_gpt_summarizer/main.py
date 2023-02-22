@@ -4,12 +4,14 @@ a summary of the reddit thread.
 """
 # Import necessary modules
 
+import logging
 import os
 import re
 import sys
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Tuple, Union
 
+import colorlog
 import openai
 from dotenv import load_dotenv
 
@@ -20,10 +22,36 @@ from reddit_gpt_summarizer.utils.utils import (
     save_output,
 )
 
+logger = logging.getLogger("reddit_gpt_summarizer_log")
+
+formatter = colorlog.ColoredFormatter(
+    "%(log_color)s%(levelname)s:%(message)s",
+    log_colors={
+        "DEBUG": "cyan",
+        "INFO": "green",
+        "WARNING": "yellow",
+        "ERROR": "red",
+        "CRITICAL": "bold_red",
+    },
+)
+
+# create file handler
+file_handler = logging.FileHandler("./logs/log.log")
+
+# create stream handler
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+# add handlers to logger
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
+# set log level
+logger.setLevel(logging.DEBUG)
+
 try:
     load_dotenv()
 except FileNotFoundError:
-    print("Could not find .env file. Please create one.")
+    logger.error("Could not find .env file. Please create one.")
     sys.exit(1)
 
 # Constants
@@ -103,11 +131,11 @@ def summarize_prompt(prompt: str, max_summary_length: int) -> str:
     )
 
     if len(response) == 0:
-        print("response error=", response)  # error
+        logger.error("response error=%s", response)  # error
         return "Error: unable to generate response."
 
     response_text = response["choices"][0]["text"]
-    print("response_text=", response_text)
+    logger.debug("response_text=%s", response_text)
     return response_text
 
 
@@ -140,7 +168,7 @@ def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
             # replace one or more consecutive newline characters
             body_tuple = (body_tuple[0], re.sub(r"\n+", "\n", body_tuple[1]))
 
-            print("length of body_tuple[1] = ", len(body_tuple[1]))
+            logger.debug("length of body_tuple[1] = %s", len(body_tuple[1]))
             # TODO: experiment with recursive summarization functions here.
             # constrain result so that it is less than MAX_CHUNK_TOKEN_SIZE tokens
             # if result is greater than max token length of body, summarize it
@@ -150,7 +178,7 @@ def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
             result += body_tuple[1][: estimate_word_count(1000)] + "\n"
 
             if num_tokens_from_string(result) > MAX_CHUNK_TOKEN_SIZE:
-                print("cutnow")
+                logger.debug("cutnow")
                 results.append(result)
                 result = ""
     if result:
@@ -170,17 +198,17 @@ def complete_chunk(prompt: str) -> str:
     """
     num_tokens = num_tokens_from_string(prompt)
 
-    print("token length: " + str(num_tokens))
+    logger.debug("token length: %s", str(num_tokens))
     response: Dict[str, Any] = openai.Completion.create(  # type: ignore
         model=GPT_MODEL,
         prompt=prompt,
         temperature=0.9,
         max_tokens=MAX_TOKENS - num_tokens,
     )
-    print("prompt=" + prompt)
+    logger.info("prompt=%s", prompt)
 
     if len(response) == 0:
-        print("response=", response)  # error
+        logger.error("response=%s", response)  # error
         return "Error: unable to generate response."
     return response["choices"][0]["text"]
 
@@ -235,7 +263,7 @@ def main():
     contents = list(get_body_contents(reddit_json, []))
 
     if not contents:
-        print("No body contents found")
+        logger.error("No body contents found")
         return
 
     # concatenate the bodies into an array of newline delimited strings
@@ -243,15 +271,15 @@ def main():
 
     # print groups along with their lengths
     for i, group in enumerate(groups):
-        print(f"Group {i} length: {num_tokens_from_string(group)}")
+        logger.debug("Group %s length: %s", i, num_tokens_from_string(group))
 
-    print("title + selftext = ", num_tokens_from_string(title + selftext))
+    logger.debug("title + selftext = %s", num_tokens_from_string(title + selftext))
 
     # Generate the summary
     # TODO: experiment with recursive summarization functions here. selftext can be long
     output = generate_summary(title, selftext[: estimate_word_count(500)], groups)
 
-    print(output)
+    logger.info(output)
 
     save_output(title, output)
 

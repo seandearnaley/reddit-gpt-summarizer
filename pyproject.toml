@@ -18,6 +18,7 @@ pytest = "^7.2.1"
 mypy = "^0.991"
 types-requests = "^2.28.11.8"
 black = "^23.1.0"
+colorlog = "^6.7.0"
 
 [build-system]
 requires = ["poetry-core"]
