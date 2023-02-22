@@ -1,7 +1,7 @@
 """Test main.py."""
 import pytest
 
-from reddit_gpt_summarizer.main import (
+from app import (
     get_body_contents,
     get_metadata_from_reddit_json,
     group_bodies_into_chunks,

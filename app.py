@@ -13,6 +13,7 @@ from typing import Any, Dict, Generator, List, Tuple, Union
 
 import colorlog
 import openai
+import streamlit as st
 from dotenv import load_dotenv
 
 from reddit_gpt_summarizer.utils.utils import (
@@ -169,7 +170,7 @@ def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
             body_tuple = (body_tuple[0], re.sub(r"\n+", "\n", body_tuple[1]))
 
             logger.debug("length of body_tuple[1] = %s", len(body_tuple[1]))
-            # TODO: experiment with recursive summarization functions here.
+            # TODO: #2 #1 experiment with recursive summarization functions here.
             # constrain result so that it is less than MAX_CHUNK_TOKEN_SIZE tokens
             # if result is greater than max token length of body, summarize it
             # \n == 1 token.
@@ -244,13 +245,12 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
     return output
 
 
-def main():
+def process(json_url: str = REDDIT_URL):
     """
-    download reddit json, generate summary
+    Process the reddit thread JSON and generate a summary.
     """
-
     # get the reddit json, will exit if there is an error
-    reddit_json = request_json_from_url(REDDIT_URL)
+    reddit_json = request_json_from_url(json_url)
 
     # write raw json output to file for debugging
     with open("output.json", "w", encoding="utf-8") as raw_json_file:
@@ -282,7 +282,22 @@ def main():
     logger.info(output)
 
     save_output(title, output)
+    return output
 
 
-if __name__ == "__main__":
-    main()
+# Create an input box for url
+reddit_url = st.text_input("Enter reddit url", REDDIT_URL)
+
+# Create a button to submit the url
+if st.button("Get data"):
+    summary_data = process(reddit_url)
+    # Check if response is valid
+    if summary_data:
+        # Display weather data in a textarea
+        st.text_area(
+            "Reddit Summary",
+            summary_data,
+        )
+    else:
+        # Display error message if response is invalid
+        st.error("No Summary Data")
