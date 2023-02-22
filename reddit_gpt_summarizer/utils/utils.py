@@ -4,7 +4,7 @@ import os
 import re
 import sys
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 import requests
 import tiktoken
@@ -34,7 +34,7 @@ def generate_filename(title: str) -> str:
     return filename
 
 
-def request_json_from_url(url: str) -> Dict[str, Any]:
+def request_json_from_url(url: str) -> list[dict[str, Any]]:
     """
     Make a request to the given URL and return the JSON response.
     """

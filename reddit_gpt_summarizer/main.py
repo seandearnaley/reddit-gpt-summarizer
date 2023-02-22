@@ -128,7 +128,9 @@ def summarize_body(body: str, max_length: int = MAX_BODY_TOKEN_SIZE) -> str:
         )
 
 
-def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
+def group_bodies_into_chunks(
+    contents: Generator[Tuple[str, str], None, None]
+) -> List[str]:
     """
     Concatenate the bodies into an array of newline delimited strings that are
     <MAX_CHUNK_TOKEN_SIZE tokens long
