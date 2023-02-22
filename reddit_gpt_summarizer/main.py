@@ -70,7 +70,7 @@ def get_metadata_from_reddit_json(data: list[dict[str, Any]]) -> Tuple[str, str]
 
 def get_body_contents(
     data: Union[Dict[str, Any], List[Any], str], path: List[str]
-) -> Generator[Tuple[str, str], None, None]:
+) -> Generator[Tuple[str, str], None, Any]:
     """
     Recursively iterate through the data and yield the path and value of the 'body' key.
     """
@@ -128,9 +128,7 @@ def summarize_body(body: str, max_length: int = MAX_BODY_TOKEN_SIZE) -> str:
         )
 
 
-def group_bodies_into_chunks(
-    contents: Generator[Tuple[str, str], None, None]
-) -> List[str]:
+def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
     """
     Concatenate the bodies into an array of newline delimited strings that are
     <MAX_CHUNK_TOKEN_SIZE tokens long
@@ -234,7 +232,7 @@ def main():
     title, selftext = get_metadata_from_reddit_json(reddit_json)
 
     # get an array of body contents
-    contents = get_body_contents(reddit_json, [])
+    contents = list(get_body_contents(reddit_json, []))
 
     if not contents:
         print("No body contents found")

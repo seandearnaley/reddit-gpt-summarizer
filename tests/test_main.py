@@ -8,11 +8,11 @@ from reddit_gpt_summarizer.main import (
 )
 
 
-def test_get_metadata_from_reddit_json():
+def test_get_metadata_from_reddit_json() -> None:
     """Test get_metadata_from_reddit_json()."""
     # Test correct output
-    data = {
-        0: {
+    data = [
+        {
             "data": {
                 "children": [
                     {
@@ -24,17 +24,17 @@ def test_get_metadata_from_reddit_json():
                 ]
             }
         }
-    }
+    ]
     expected_output = ("Test Title", "Test Selftext")
     assert get_metadata_from_reddit_json(data) == expected_output
 
     # Test ValueError raised when title not found
-    data = {0: {"data": {"children": [{"data": {"selftext": "Test Selftext"}}]}}}
+    data = [{"data": {"children": [{"data": {"selftext": "Test Selftext"}}]}}]
     with pytest.raises(ValueError):
         get_metadata_from_reddit_json(data)
 
     # Test ValueError raised when selftext not found
-    data = {0: {"data": {"children": [{"data": {"title": "Test Title"}}]}}}
+    data = [{"data": {"children": [{"data": {"title": "Test Title"}}]}}]
     with pytest.raises(ValueError):
         get_metadata_from_reddit_json(data)
 
@@ -63,7 +63,7 @@ def test_get_body_contents():
     assert list(get_body_contents(data, [])) == expected_output
 
 
-def test_group_bodies_into_chunks():
+def test_group_bodies_into_chunks() -> None:
     """Test group_bodies_into_chunks()."""
     # Test correct output
     contents = [
