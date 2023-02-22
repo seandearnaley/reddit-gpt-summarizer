@@ -8,12 +8,12 @@ import os
 import re
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, Generator, List, Tuple, Union
 
 import openai
 from dotenv import load_dotenv
 
-from reddit_gpt_summarizer.utils import (
+from reddit_gpt_summarizer.utils.utils import (
     estimate_word_count,
     num_tokens_from_string,
     request_json_from_url,
@@ -54,7 +54,7 @@ openai.organization = os.environ.get("OPENAI_ORG_ID")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
-def get_metadata_from_reddit_json(data: dict) -> Tuple[str, str]:
+def get_metadata_from_reddit_json(data: list[dict[str, Any]]) -> Tuple[str, str]:
     """
     Get the title and selftext from the reddit json data.
     """
@@ -69,53 +69,46 @@ def get_metadata_from_reddit_json(data: dict) -> Tuple[str, str]:
 
 
 def get_body_contents(
-    data: Dict[str, Any],
-    path: List[str],
-) -> List[Tuple[str, str]]:
+    data: Union[Dict[str, Any], List[Any], str], path: List[str]
+) -> Generator[Tuple[str, str], None, None]:
     """
-    function that returns tuples of the form (path, body_content) for
-    all dictionaries in the input data with a key of 'body'.
-    NOTE: path is potentially useful here for indenting the output
+    Recursively iterate through the data and yield the path and value of the 'body' key.
     """
     # If data is a dictionary, check if it has a 'body' key
     if isinstance(data, dict):
         if "body" in data:
             # If the dictionary has a 'body' key, yield the path and value of the 'body'
             path_str = "/".join([str(x) for x in path])
-            return [(path_str, "[" + data["author"] + "] " + data["body"])]
+            yield (path_str, "[" + data["author"] + "] " + data["body"])
         # Iterate through the dictionary's key-value pairs
-        result = []
         for key, value in data.items():
             # Recursively call the function with the value and updated path
-            result += get_body_contents(value, path + [key])
-        return result
+            yield from get_body_contents(value, path + [key])
     # If data is a list, iterate through the elements
     elif isinstance(data, list):
-        result = []
         for index, item in enumerate(data):
             # Recursively call the function with the element and updated path
-            result += get_body_contents(item, path + [str(index)])
-        return result
-    # If data is neither a dictionary nor a list, return an empty list
-    else:
-        return []
+            yield from get_body_contents(item, path + [repr(index)])
 
 
 def summarize_prompt(prompt: str, max_summary_length: int) -> str:
     """
     Use OpenAI's GPT-3 model to complete text based on the given prompt.
     """
-    response = openai.Completion.create(
+
+    response: Dict[str, Any] = openai.Completion.create(  # type: ignore
         model=GPT_MODEL,
         prompt=prompt,
         max_tokens=MAX_TOKENS - max_summary_length,
     )
 
-    if isinstance(response, dict) and len(response) > 0:
-        return response["choices"][0]["text"]
-    else:
-        print("response=", response)
+    if len(response) == 0:
+        print("response error=", response)  # error
         return "Error: unable to generate response."
+
+    response_text = response["choices"][0]["text"]
+    print("response_text=", response_text)
+    return response_text
 
 
 def summarize_body(body: str, max_length: int = MAX_BODY_TOKEN_SIZE) -> str:
@@ -140,7 +133,7 @@ def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
     Concatenate the bodies into an array of newline delimited strings that are
     <MAX_CHUNK_TOKEN_SIZE tokens long
     """
-    results = []
+    results: List[str] = []
     result = ""
     for body_tuple in contents:
         if body_tuple[1]:
@@ -178,7 +171,7 @@ def complete_chunk(prompt: str) -> str:
     num_tokens = num_tokens_from_string(prompt)
 
     print("token length: " + str(num_tokens))
-    response = openai.Completion.create(
+    response: Dict[str, Any] = openai.Completion.create(  # type: ignore
         model=GPT_MODEL,
         prompt=prompt,
         temperature=0.9,
@@ -186,11 +179,10 @@ def complete_chunk(prompt: str) -> str:
     )
     print("prompt=" + prompt)
 
-    if isinstance(response, dict) and len(response) > 0:
-        return response["choices"][0]["text"]
-    else:
-        print("response=", response)
+    if len(response) == 0:
+        print("response=", response)  # error
         return "Error: unable to generate response."
+    return response["choices"][0]["text"]
 
 
 def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
@@ -208,7 +200,6 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
 
     # Use enumerate to get the index and the group in each iteration
     for i, group in enumerate(groups[:MAX_NUMBER_OF_SUMMARIES]):
-
         prompt = (
             f"{INSTRUCTION_TEXT}\n\n{prefix}\n\nr/{SUBREDDIT} on REDDIT\n"
             f"COMMENTS BEGIN\n{group}\nCOMMENTS END\n\n"
@@ -242,6 +233,10 @@ def main():
 
     # get an array of body contents
     contents = get_body_contents(reddit_json, [])
+
+    if not contents:
+        print("No body contents found")
+        return
 
     # concatenate the bodies into an array of newline delimited strings
     groups = group_bodies_into_chunks(contents)

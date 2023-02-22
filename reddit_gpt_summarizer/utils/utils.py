@@ -22,7 +22,7 @@ def num_tokens_from_string(string: str, encoding_name: str = "gpt2") -> int:
     return num_tokens
 
 
-def generate_filename(title) -> str:
+def generate_filename(title: str) -> str:
     """Generate a filename from the given title."""
     # Remove all special characters and spaces from the title
     filename = re.sub(r"[^\w\s]", "", title)
@@ -89,7 +89,7 @@ def save_output(title: str, output: str) -> str:
     return output_file_path
 
 
-def estimate_word_count(num_tokens):
+def estimate_word_count(num_tokens: int) -> int:
     """
     Given the number of GPT-2 tokens, estimates the real word count.
     """

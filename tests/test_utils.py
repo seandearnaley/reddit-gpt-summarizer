@@ -1,17 +1,16 @@
 """Test utils.py."""
+import json
 import os
 import sys
-import json
 from unittest import mock
+
 import requests
 import tiktoken
-from reddit_gpt_summarizer.utils import (
-    num_tokens_from_string,
-    request_json_from_url,
-    generate_filename,
-    save_output,
-    HEADERS,
-)
+
+from reddit_gpt_summarizer.utils.utils import (HEADERS, generate_filename,
+                                               num_tokens_from_string,
+                                               request_json_from_url,
+                                               save_output)
 
 
 def test_num_tokens_from_string():
@@ -137,5 +136,7 @@ def test_save_output():
             "current/working/directory/outputs/Hello_World_20230205120000.txt",
             "w",
             encoding="utf-8",
+        )
+        mock_get_timestamp.assert_called_once()
         )
         mock_get_timestamp.assert_called_once()
