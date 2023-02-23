@@ -27,4 +27,4 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
 # set log level
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARN)

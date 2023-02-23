@@ -10,16 +10,18 @@ from typing import Any, Dict, Generator, List, Tuple, Union
 
 import streamlit as st
 
+from utils.common import request_json_from_url, save_output
 from utils.logger import logger
 from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
-from utils.utils import request_json_from_url, save_output
 
 # Constants
 MAX_CHUNK_TOKEN_SIZE = 500
 MAX_BODY_TOKEN_SIZE = 1000  # not in use yet
-MAX_NUMBER_OF_SUMMARIES = 1  # reduce this to 1 for testing
-MAX_TOKENS = 1000  # max number of tokens for GPT-3
-THREAD_ID = "webdev/comments/8sumel/free_web_development_tutorials_for_those_who_are"
+MAX_NUMBER_OF_SUMMARIES = 3  # reduce this to 1 for testing
+MAX_TOKENS = 3000  # max number of tokens for GPT-3
+THREAD_ID = (
+    "entertainment/comments/1193p9x/daft_punk_announce_new_random_access_memories"
+)
 REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}.json"  # URL of reddit thread
 SUBREDDIT = THREAD_ID.split("/", maxsplit=1)[0]
 
@@ -139,13 +141,13 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
             "Title: "
         )
 
-        st.subheader("prompt: " + str(i))
+        st.subheader("summary prompt: " + str(i + 1))
         st.code(prompt)
 
         summary = complete_text(prompt, MAX_TOKENS - num_tokens_from_string(prompt))
         # insert the summary into the prefix
 
-        st.subheader("openai_response: " + str(i))
+        st.subheader("openai_response: " + str(i + 1))
         st.code(summary)
 
         prefix = f"Title:{summary}"
@@ -207,18 +209,31 @@ def process(json_url: str = REDDIT_URL):
     return output
 
 
+st.header("Reddit Thread GPT Summarizer")
+placeholder = st.empty()
+
 # Create an input box for url
-reddit_url = st.text_area("Enter reddit url", REDDIT_URL)
+with placeholder.container():
+    reddit_url = st.text_area("Enter REDDIT URL:", REDDIT_URL)
+    btn = st.button("Get data")
 
 # Create a button to submit the url
-if st.button("Get data"):
+if btn:
     if not reddit_url.endswith(".json"):
         st.error("must end with .json")
 
-    with st.spinner("Wait for it..."):
-        summary_data = process(reddit_url)
-        if not summary_data:
-            # Display error message if response is invalid
-            st.error("No Summary Data")
+    placeholder.empty()
+    summary_placeholder = st.empty()
 
-    st.success("Done!")
+    with summary_placeholder.container():
+        with st.spinner("Wait for it..."):
+            summary_data = process(reddit_url)
+            if not summary_data:
+                # Display error message if response is invalid
+                st.error("No Summary Data")
+
+        st.success("Done!")
+        clear_btn = st.button("Clear")
+
+        if clear_btn:
+            summary_placeholder = st.empty()

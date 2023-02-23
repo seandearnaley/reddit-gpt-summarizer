@@ -8,14 +8,14 @@ from unittest import mock
 import requests
 import tiktoken
 
-from utils.openai import num_tokens_from_string
-from utils.utils import (
+from utils.common import (
     HEADERS,
     generate_filename,
     get_timestamp,
     request_json_from_url,
     save_output,
 )
+from utils.openai import num_tokens_from_string
 
 
 def test_num_tokens_from_string() -> None:
