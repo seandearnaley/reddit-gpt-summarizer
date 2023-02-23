@@ -10,15 +10,15 @@ from typing import Any, Dict, Generator, List, Tuple, Union
 
 import streamlit as st
 
+from presets import presets
 from utils.common import is_valid_url, request_json_from_url, save_output
 from utils.logger import logger
 from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
 
 # Constants
-MAX_CHUNK_TOKEN_SIZE = 500
-MAX_BODY_TOKEN_SIZE = 1000  # not in use yet
-MAX_NUMBER_OF_SUMMARIES = 3  # reduce this to 1 for testing
-MAX_TOKENS = 3000  # max number of tokens for GPT-3
+DEFAULT_CHUNK_TOKEN_LENGTH = 2000
+DEFAULT_NUMBER_OF_SUMMARIES = 3  # reduce this to 1 for testing
+DEFAULT_MAX_TOKEN_LENGTH = 3000  # max number of tokens for GPT-3
 THREAD_ID = (
     "entertainment/comments/1193p9x/daft_punk_announce_new_random_access_memories"
 )
@@ -82,24 +82,12 @@ def get_body_contents(
             yield from get_body_contents(item, path + [repr(index)])
 
 
-def summarize_body(body: str, max_length: int = MAX_BODY_TOKEN_SIZE) -> str:
-    """
-    Summarizes a body of text to be at most max_length tokens long.
-    """
-    if num_tokens_from_string(body) <= max_length:
-        return body
-    else:
-        summary_string = (
-            f"summarize this text to under {max_length} GPT-2 tokens:\n" + body
-        )
-
-        return complete_text(summary_string, num_tokens_from_string(summary_string))
-
-
-def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
+def group_bodies_into_chunks(
+    contents: List[Tuple[str, str]], token_length: int
+) -> List[str]:
     """
     Concatenate the bodies into an array of newline delimited strings that are
-    <MAX_CHUNK_TOKEN_SIZE tokens long
+    < token_length tokens long
     """
     results: List[str] = []
     result = ""
@@ -109,14 +97,14 @@ def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
             body_tuple = (body_tuple[0], re.sub(r"\n+", "\n", body_tuple[1]))
 
             logger.debug("length of body_tuple[1] = %s", len(body_tuple[1]))
-            # constrain result so that it is less than MAX_CHUNK_TOKEN_SIZE tokens
+            # constrain result so that it is less than chunk token_length tokens
             # if result is greater than max token length of body, summarize it
             # \n == 1 token.
             # The average number of real words per token for GPT-2 is 0.56,
             # hack for now, use string slicing to constrain body length
             result += body_tuple[1][: estimate_word_count(1000)] + "\n"
 
-            if num_tokens_from_string(result) > MAX_CHUNK_TOKEN_SIZE:
+            if num_tokens_from_string(result) > token_length:
                 logger.debug("cutnow")
                 results.append(result)
                 result = ""
@@ -126,38 +114,39 @@ def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
 
 
 def generate_summary(
-    instruction: str, title: str, selftext: str, groups: List[str]
+    instruction: str,
+    title: str,
+    selftext: str,
+    groups: List[str],
+    number_of_summaries: int,
+    max_token_length: int,
 ) -> str:
     """
     Generate a summary of the reddit thread using OpenAI's GPT-3 model.
     """
-
-    # initialize the prefix with the title and selftext of the reddit thread JSON
-    prefix = f"Title: {title}\n{selftext}"
-
     output = ""
 
     # use the first group twice because of top comments
     groups.insert(0, groups[0])
 
     # Use enumerate to get the index and the group in each iteration
-    for i, group in enumerate(groups[:MAX_NUMBER_OF_SUMMARIES]):
+    for i, group in enumerate(groups[:number_of_summaries]):
         prompt = (
-            f"{instruction}\n\n{prefix}\n\nr/{SUBREDDIT} on REDDIT\n"
+            f"{instruction}\n\nTitle: {title}\n{selftext}\n\nr/{SUBREDDIT} on REDDIT\n"
             f"COMMENTS BEGIN\n{group}\nCOMMENTS END\n\n"
             "Title: "
         )
-
-        st.subheader("summary prompt: " + str(i + 1))
+        st.subheader(f"summary prompt: {i + 1}")
         st.code(prompt)
 
-        summary = complete_text(prompt, MAX_TOKENS - num_tokens_from_string(prompt))
+        summary = complete_text(
+            prompt, max_token_length - num_tokens_from_string(prompt)
+        )
         # insert the summary into the prefix
 
-        st.subheader("openai_response: " + str(i + 1))
+        st.subheader(f"openai_response: {i + 1}")
         st.code(summary)
 
-        prefix = f"Title:{summary}"
         # Use format method to insert values into a string
         output += f"============\nSUMMARY COUNT: {i}\n============\n"
         output += f"PROMPT: {prompt}\n\n{summary}\n===========================\n\n"
@@ -165,7 +154,13 @@ def generate_summary(
     return output
 
 
-def process(instruction: str, json_url: str = REDDIT_URL):
+def process(
+    instruction: str,
+    chunk_token_length: int,
+    number_of_summaries: int,
+    max_token_length: int,
+    json_url: str = REDDIT_URL,
+) -> str:
     """
     Process the reddit thread JSON and generate a summary.
     """
@@ -190,22 +185,19 @@ def process(instruction: str, json_url: str = REDDIT_URL):
     contents = list(get_body_contents(reddit_json, []))
 
     if not contents:
-        logger.error("No body contents found")
         st.error("No body contents found")
         st.stop()
 
     # concatenate the bodies into an array of newline delimited strings
-    groups = group_bodies_into_chunks(contents)
-    length_subheading: str = "title + selftext string length as tokens =" + str(
+    groups = group_bodies_into_chunks(contents, chunk_token_length)
+    length_heading: str = "title + selftext string length as tokens =" + str(
         num_tokens_from_string(title + selftext)
     )
 
-    logger.debug(length_subheading)
-    st.text(length_subheading)
+    logger.debug(length_heading)
+    st.text(length_heading)
     # print groups along with their lengths
     for i, group in enumerate(groups):
-        logger.debug("Group %s length: %s", i, num_tokens_from_string(group))
-
         st.text(
             f"Group {i} length {num_tokens_from_string(group)}",
         )
@@ -214,7 +206,12 @@ def process(instruction: str, json_url: str = REDDIT_URL):
 
     # Generate the summary, really should do recursive summary on selftext here
     output = generate_summary(
-        instruction, title, selftext[: estimate_word_count(500)], groups
+        instruction,
+        title,
+        selftext[: estimate_word_count(500)],
+        groups,
+        number_of_summaries,
+        max_token_length,
     )
 
     logger.info(output)
@@ -234,7 +231,22 @@ with placeholder.container():
     instruction_text: str = st.text_area(
         "Instructions", DEFAULT_INSTRUCTION_TEXT, height=250
     )
+    model = st.radio("Select Model", list(presets.keys()))
 
+    if model:
+        st.text(f"You selected model {model}. Here are the parameters:")
+        st.text(presets[model])
+    else:
+        st.text("Please select a model.")
+
+    chunk_token_length_input = int(
+        st.number_input("Chunk Token Length", DEFAULT_CHUNK_TOKEN_LENGTH)
+    )
+
+    number_of_summaries_input = int(st.number_input("Number of Summaries", 1, 10))
+    max_token_length_input = int(
+        st.number_input("Max Token Length", DEFAULT_MAX_TOKEN_LENGTH)
+    )
     btn = st.button("Do it!")
 
 # Create a button to submit the url
@@ -249,7 +261,13 @@ if btn:
     with summary_placeholder.container():
         with st.spinner("Wait for it..."):
             st.subheader("Reddit Original Post")
-            summary_data = process(instruction_text, reddit_url)
+            summary_data = process(
+                instruction_text,
+                chunk_token_length_input,
+                number_of_summaries_input,
+                max_token_length_input,
+                reddit_url,
+            )
             if not summary_data:
                 # Display error message if response is invalid
                 st.error("No Summary Data")

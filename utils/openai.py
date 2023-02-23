@@ -1,4 +1,5 @@
 """OpenAI Utility functions for the Reddit Scraper project."""
+import math
 import os
 import sys
 from typing import Any, Dict
@@ -9,7 +10,8 @@ from dotenv import load_dotenv
 
 from utils.logger import logger
 
-GPT_MODEL = "text-davinci-003"  # GPT-3 model to use
+MAX_BODY_TOKEN_SIZE = 1000  # not in use yet
+DEFAULT_GPT_MODEL = "text-davinci-003"  # GPT-3 model to use
 
 try:
     load_dotenv()
@@ -17,8 +19,8 @@ except FileNotFoundError:
     logger.error("Could not find .env file. Please create one.")
     sys.exit(1)
 
-openai.organization = os.environ.get("OPENAI_ORG_ID")
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+openai.organization = os.getenv("OPENAI_ORG_ID")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def num_tokens_from_string(string: str, encoding_name: str = "gpt2") -> int:
@@ -38,7 +40,7 @@ def estimate_word_count(num_tokens: int) -> int:
     # The average number of real words per token for GPT-2 is 0.56, according to OpenAI.
     # Multiply the number of tokens by this average to estimate the total number of real
     # words.
-    estimated_word_count = round(num_tokens * 0.56)
+    estimated_word_count = math.ceil(num_tokens * 0.56)
 
     return estimated_word_count
 
@@ -56,10 +58,12 @@ def complete_text(prompt: str, max_tokens: int) -> str:
         str: The completed text.
     """
 
+    if max_tokens <= 0:
+        raise ValueError("The input max_tokens must be a positive integer.")
+
     response: Dict[str, Any] = openai.Completion.create(  # type: ignore
-        model=GPT_MODEL,
+        model=DEFAULT_GPT_MODEL,
         prompt=prompt,
-        # temperature=0.9,
         max_tokens=max_tokens,
     )
 
@@ -67,4 +71,16 @@ def complete_text(prompt: str, max_tokens: int) -> str:
         logger.error("response=%s", response)  # error
         return "Error: unable to generate response."
 
-    return response["choices"][0]["text"]
+    return response["choices"][0]["text"]  # completed_text
+
+
+def summarize_body(body: str, max_length: int = MAX_BODY_TOKEN_SIZE) -> str:
+    """
+    Summarizes a body of text to be at most max_length tokens long.
+    """
+    if num_tokens_from_string(body) <= max_length:
+        return body
+
+    summary_string = f"summarize this text to under {max_length} GPT-2 tokens:\n" + body
+
+    return complete_text(summary_string, num_tokens_from_string(summary_string))

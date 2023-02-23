@@ -2,6 +2,7 @@
 import pytest
 
 from app import (
+    DEFAULT_CHUNK_TOKEN_LENGTH,
     get_body_contents,
     get_metadata_from_reddit_json,
     group_bodies_into_chunks,
@@ -72,16 +73,32 @@ def test_group_bodies_into_chunks() -> None:
         ("path3", "Test Body 3"),
     ]
     expected_output = ["Test Body 1\nTest Body 2\nTest Body 3\n"]
-    assert group_bodies_into_chunks(contents) == expected_output
+    assert (
+        group_bodies_into_chunks(contents, DEFAULT_CHUNK_TOKEN_LENGTH)
+        == expected_output
+    )
 
     # Test correct output when bodies are longer than MAX_CHUNK_SIZE tokens
 
     # Test correct output when no bodies are present
     contents = []
     expected_output = []
-    assert group_bodies_into_chunks(contents) == expected_output
+    assert (
+        group_bodies_into_chunks(contents, DEFAULT_CHUNK_TOKEN_LENGTH)
+        == expected_output
+    )
 
     # Test correct output when only one body is present
     contents = [("path1", "Test Body 1")]
     expected_output = ["Test Body 1\n"]
-    assert group_bodies_into_chunks(contents) == expected_output
+    assert (
+        group_bodies_into_chunks(contents, DEFAULT_CHUNK_TOKEN_LENGTH)
+        == expected_output
+    )
+    # Test correct output when only one body is present
+    contents = [("path1", "Test Body 1")]
+    expected_output = ["Test Body 1\n"]
+    assert (
+        group_bodies_into_chunks(contents, DEFAULT_CHUNK_TOKEN_LENGTH)
+        == expected_output
+    )
