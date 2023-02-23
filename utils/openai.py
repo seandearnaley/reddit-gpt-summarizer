@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 from utils.logger import logger
 
-GPT_MODEL = "text-davinci-002"  # GPT-3 model to use
+GPT_MODEL = "text-davinci-003"  # GPT-3 model to use
 
 try:
     load_dotenv()
@@ -59,7 +59,7 @@ def complete_text(prompt: str, max_tokens: int) -> str:
     response: Dict[str, Any] = openai.Completion.create(  # type: ignore
         model=GPT_MODEL,
         prompt=prompt,
-        temperature=0.9,
+        # temperature=0.9,
         max_tokens=max_tokens,
     )
 

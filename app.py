@@ -139,13 +139,13 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
             "Title: "
         )
 
-        st.subheader("prompt")
+        st.subheader("prompt: " + str(i))
         st.code(prompt)
 
         summary = complete_text(prompt, MAX_TOKENS - num_tokens_from_string(prompt))
         # insert the summary into the prefix
 
-        st.subheader("openai_response")
+        st.subheader("openai_response: " + str(i))
         st.code(summary)
 
         prefix = f"Title:{summary}"
@@ -171,13 +171,14 @@ def process(json_url: str = REDDIT_URL):
     title, selftext = get_metadata_from_reddit_json(reddit_json)
 
     st.header(title)
-    st.subheader(selftext)
+    st.text(selftext)
     # get an array of body contents
     contents = list(get_body_contents(reddit_json, []))
 
     if not contents:
         logger.error("No body contents found")
-        return
+        st.error("No body contents found")
+        st.stop()
 
     # concatenate the bodies into an array of newline delimited strings
     groups = group_bodies_into_chunks(contents)
@@ -219,11 +220,5 @@ if st.button("Get data"):
         if not summary_data:
             # Display error message if response is invalid
             st.error("No Summary Data")
-
-        # Display weather data in a textarea
-        st.text_area(
-            "Reddit Summary",
-            summary_data,
-        )
 
     st.success("Done!")
