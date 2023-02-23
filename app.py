@@ -10,7 +10,7 @@ from typing import Any, Dict, Generator, List, Tuple, Union
 
 import streamlit as st
 
-from utils.common import request_json_from_url, save_output
+from utils.common import is_valid_url, request_json_from_url, save_output
 from utils.logger import logger
 from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
 
@@ -25,7 +25,7 @@ THREAD_ID = (
 REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}.json"  # URL of reddit thread
 SUBREDDIT = THREAD_ID.split("/", maxsplit=1)[0]
 
-INSTRUCTION_TEXT = (
+DEFAULT_INSTRUCTION_TEXT = (
     f"(Todays Date: {datetime.now().strftime('%Y-%b-%d')}) Revise and improve the "
     "article by incorporating relevant information from the comments. Ensure the "
     "content is clear, engaging, and easy to understand for a general audience. "
@@ -44,13 +44,18 @@ def get_metadata_from_reddit_json(data: list[dict[str, Any]]) -> Tuple[str, str]
     """
     Get the title and selftext from the reddit json data.
     """
-    child_data = data[0]["data"]["children"][0]["data"]
-    title = child_data.get("title")
-    selftext = child_data.get("selftext")
+    try:
+        child_data = data[0]["data"]["children"][0]["data"]
+        title = child_data["title"]
+        selftext = child_data["selftext"]
+    except (KeyError, IndexError) as exc:
+        raise ValueError(
+            "Invalid JSON data. Please check the Reddit URL and try again."
+        ) from exc
     if title is None:
-        raise ValueError("Title not found in child data")
+        raise ValueError("Title not found in Reddit thread data.")
     if selftext is None:
-        raise ValueError("Selftext not found in child data")
+        raise ValueError("Selftext not found in Reddit thread data.")
     return title, selftext
 
 
@@ -120,7 +125,9 @@ def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
     return results
 
 
-def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
+def generate_summary(
+    instruction: str, title: str, selftext: str, groups: List[str]
+) -> str:
     """
     Generate a summary of the reddit thread using OpenAI's GPT-3 model.
     """
@@ -136,7 +143,7 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
     # Use enumerate to get the index and the group in each iteration
     for i, group in enumerate(groups[:MAX_NUMBER_OF_SUMMARIES]):
         prompt = (
-            f"{INSTRUCTION_TEXT}\n\n{prefix}\n\nr/{SUBREDDIT} on REDDIT\n"
+            f"{instruction}\n\n{prefix}\n\nr/{SUBREDDIT} on REDDIT\n"
             f"COMMENTS BEGIN\n{group}\nCOMMENTS END\n\n"
             "Title: "
         )
@@ -158,12 +165,17 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
     return output
 
 
-def process(json_url: str = REDDIT_URL):
+def process(instruction: str, json_url: str = REDDIT_URL):
     """
     Process the reddit thread JSON and generate a summary.
     """
-    # get the reddit json, will exit if there is an error
-    reddit_json = request_json_from_url(json_url)
+    try:
+        # get the reddit json, will exit if there is an error
+        reddit_json = request_json_from_url(json_url)
+    except ValueError as exc:
+        raise ValueError(
+            "Invalid URL. Please enter a valid Reddit URL and try again."
+        ) from exc
 
     # write raw json output to file for debugging
     with open("output.json", "w", encoding="utf-8") as raw_json_file:
@@ -200,8 +212,10 @@ def process(json_url: str = REDDIT_URL):
 
         st.code(group)
 
-    # Generate the summary
-    output = generate_summary(title, selftext[: estimate_word_count(500)], groups)
+    # Generate the summary, really should do recursive summary on selftext here
+    output = generate_summary(
+        instruction, title, selftext[: estimate_word_count(500)], groups
+    )
 
     logger.info(output)
 
@@ -210,27 +224,36 @@ def process(json_url: str = REDDIT_URL):
 
 
 st.header("Reddit Thread GPT Summarizer")
+
 placeholder = st.empty()
 
 # Create an input box for url
 with placeholder.container():
     reddit_url = st.text_area("Enter REDDIT URL:", REDDIT_URL)
-    btn = st.button("Get data")
+
+    instruction_text: str = st.text_area(
+        "Instructions", DEFAULT_INSTRUCTION_TEXT, height=250
+    )
+
+    btn = st.button("Do it!")
 
 # Create a button to submit the url
 if btn:
-    if not reddit_url.endswith(".json"):
-        st.error("must end with .json")
+    if not is_valid_url(reddit_url):
+        st.error("Please enter a valid Reddit URL ending in '.json'.")
+        st.stop()
 
     placeholder.empty()
     summary_placeholder = st.empty()
 
     with summary_placeholder.container():
         with st.spinner("Wait for it..."):
-            summary_data = process(reddit_url)
+            st.subheader("Reddit Original Post")
+            summary_data = process(instruction_text, reddit_url)
             if not summary_data:
                 # Display error message if response is invalid
                 st.error("No Summary Data")
+                st.stop()
 
         st.success("Done!")
         clear_btn = st.button("Clear")

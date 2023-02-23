@@ -76,3 +76,19 @@ def save_output(title: str, output: str) -> str:
         output_file.write(output)
 
     return output_file_path
+
+
+def is_valid_url(url: str) -> bool:
+    """
+    Check if the URL is valid.
+    """
+    pattern = re.compile(
+        r"^"  # Start of the string
+        r"(http(s)?:\/\/)?"  # Optional "http://" or "https://"
+        r"(www\.)?"  # Optional "www."
+        r"reddit\.com\/"  # "reddit.com/"
+        r"([a-zA-Z0-9-_]+\/)+"  # 1 or more letters, numbers, -'s, or _ followed by "/"
+        r"[a-zA-Z0-9-_]+"  # 1 or more letters, numbers, -'s, or _'s
+        r"\.json$"  # ".json" at the end of the string
+    )
+    return bool(pattern.match(url))
