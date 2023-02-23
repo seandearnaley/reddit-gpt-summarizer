@@ -8,11 +8,11 @@ from unittest import mock
 import requests
 import tiktoken
 
-from reddit_gpt_summarizer.utils.utils import (
+from utils.openai import num_tokens_from_string
+from utils.utils import (
     HEADERS,
     generate_filename,
     get_timestamp,
-    num_tokens_from_string,
     request_json_from_url,
     save_output,
 )

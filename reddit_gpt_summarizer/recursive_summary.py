@@ -12,10 +12,7 @@ import openai
 from dotenv import load_dotenv
 from ratelimit import limits, sleep_and_retry
 
-from reddit_gpt_summarizer.utils.utils import (
-    estimate_word_count,
-    num_tokens_from_string,
-)
+from utils.openai import estimate_word_count, num_tokens_from_string
 
 # Constants
 SUMMARY_SIZE = 500

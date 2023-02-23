@@ -4,63 +4,21 @@ a summary of the reddit thread.
 """
 # Import necessary modules
 
-import logging
-import os
 import re
-import sys
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Tuple, Union
 
-import colorlog
-import openai
 import streamlit as st
-from dotenv import load_dotenv
 
-from reddit_gpt_summarizer.utils.utils import (
-    estimate_word_count,
-    num_tokens_from_string,
-    request_json_from_url,
-    save_output,
-)
-
-logger = logging.getLogger("reddit_gpt_summarizer_log")
-
-formatter = colorlog.ColoredFormatter(
-    "%(log_color)s%(levelname)s:%(message)s",
-    log_colors={
-        "DEBUG": "cyan",
-        "INFO": "green",
-        "WARNING": "yellow",
-        "ERROR": "red",
-        "CRITICAL": "bold_red",
-    },
-)
-
-# create file handler
-file_handler = logging.FileHandler("./logs/log.log")
-
-# create stream handler
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-# add handlers to logger
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
-
-# set log level
-logger.setLevel(logging.DEBUG)
-
-try:
-    load_dotenv()
-except FileNotFoundError:
-    logger.error("Could not find .env file. Please create one.")
-    sys.exit(1)
+from utils.logger import logger
+from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
+from utils.utils import request_json_from_url, save_output
 
 # Constants
-MAX_CHUNK_TOKEN_SIZE = 2000
+MAX_CHUNK_TOKEN_SIZE = 500
 MAX_BODY_TOKEN_SIZE = 1000  # not in use yet
-MAX_NUMBER_OF_SUMMARIES = 3  # reduce this to 1 for testing
-MAX_TOKENS = 4000  # max number of tokens for GPT-3
-GPT_MODEL = "text-davinci-003"  # GPT-3 model to use
+MAX_NUMBER_OF_SUMMARIES = 1  # reduce this to 1 for testing
+MAX_TOKENS = 1000  # max number of tokens for GPT-3
 THREAD_ID = "webdev/comments/8sumel/free_web_development_tutorials_for_those_who_are"
 REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}.json"  # URL of reddit thread
 SUBREDDIT = THREAD_ID.split("/", maxsplit=1)[0]
@@ -78,9 +36,6 @@ INSTRUCTION_TEXT = (
     "that is appropriate for the situation. Format the article using markdown and "
     "include links from the original article/reddit thread."
 )
-
-openai.organization = os.environ.get("OPENAI_ORG_ID")
-openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
 def get_metadata_from_reddit_json(data: list[dict[str, Any]]) -> Tuple[str, str]:
@@ -120,26 +75,6 @@ def get_body_contents(
             yield from get_body_contents(item, path + [repr(index)])
 
 
-def summarize_prompt(prompt: str, max_summary_length: int) -> str:
-    """
-    Use OpenAI's GPT-3 model to complete text based on the given prompt.
-    """
-
-    response: Dict[str, Any] = openai.Completion.create(  # type: ignore
-        model=GPT_MODEL,
-        prompt=prompt,
-        max_tokens=MAX_TOKENS - max_summary_length,
-    )
-
-    if len(response) == 0:
-        logger.error("response error=%s", response)  # error
-        return "Error: unable to generate response."
-
-    response_text = response["choices"][0]["text"]
-    logger.debug("response_text=%s", response_text)
-    return response_text
-
-
 def summarize_body(body: str, max_length: int = MAX_BODY_TOKEN_SIZE) -> str:
     """
     Summarizes a body of text to be at most max_length tokens long.
@@ -151,10 +86,7 @@ def summarize_body(body: str, max_length: int = MAX_BODY_TOKEN_SIZE) -> str:
             f"summarize this text to under {max_length} GPT-2 tokens:\n" + body
         )
 
-        return summarize_prompt(
-            summary_string,
-            num_tokens_from_string(summary_string),
-        )
+        return complete_text(summary_string, num_tokens_from_string(summary_string))
 
 
 def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
@@ -170,7 +102,6 @@ def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
             body_tuple = (body_tuple[0], re.sub(r"\n+", "\n", body_tuple[1]))
 
             logger.debug("length of body_tuple[1] = %s", len(body_tuple[1]))
-            # TODO: #2 #1 experiment with recursive summarization functions here.
             # constrain result so that it is less than MAX_CHUNK_TOKEN_SIZE tokens
             # if result is greater than max token length of body, summarize it
             # \n == 1 token.
@@ -185,33 +116,6 @@ def group_bodies_into_chunks(contents: List[Tuple[str, str]]) -> List[str]:
     if result:
         results.append(result)
     return results
-
-
-def complete_chunk(prompt: str) -> str:
-    """
-    Use OpenAI's GPT-3 model to complete a chunk of text based on the given prompt.
-
-    Args:
-        prompt (str): The prompt to use as the starting point for text completion.
-
-    Returns:
-        str: The completed chunk of text.
-    """
-    num_tokens = num_tokens_from_string(prompt)
-
-    logger.debug("token length: %s", str(num_tokens))
-    response: Dict[str, Any] = openai.Completion.create(  # type: ignore
-        model=GPT_MODEL,
-        prompt=prompt,
-        temperature=0.9,
-        max_tokens=MAX_TOKENS - num_tokens,
-    )
-    logger.info("prompt=%s", prompt)
-
-    if len(response) == 0:
-        logger.error("response=%s", response)  # error
-        return "Error: unable to generate response."
-    return response["choices"][0]["text"]
 
 
 def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
@@ -235,11 +139,18 @@ def generate_summary(title: str, selftext: str, groups: List[str]) -> str:
             "Title: "
         )
 
-        summary = complete_chunk(prompt)
+        st.subheader("prompt")
+        st.code(prompt)
+
+        summary = complete_text(prompt, MAX_TOKENS - num_tokens_from_string(prompt))
         # insert the summary into the prefix
+
+        st.subheader("openai_response")
+        st.code(summary)
+
         prefix = f"Title:{summary}"
         # Use format method to insert values into a string
-        output += f"\n\n============\nSUMMARY COUNT: {i}\n============\n"
+        output += f"============\nSUMMARY COUNT: {i}\n============\n"
         output += f"PROMPT: {prompt}\n\n{summary}\n===========================\n\n"
 
     return output
@@ -259,6 +170,8 @@ def process(json_url: str = REDDIT_URL):
     # Get the title and selftext from the reddit thread JSON
     title, selftext = get_metadata_from_reddit_json(reddit_json)
 
+    st.header(title)
+    st.subheader(selftext)
     # get an array of body contents
     contents = list(get_body_contents(reddit_json, []))
 
@@ -268,15 +181,23 @@ def process(json_url: str = REDDIT_URL):
 
     # concatenate the bodies into an array of newline delimited strings
     groups = group_bodies_into_chunks(contents)
+    length_subheading: str = "title + selftext string length as tokens =" + str(
+        num_tokens_from_string(title + selftext)
+    )
 
+    logger.debug(length_subheading)
+    st.text(length_subheading)
     # print groups along with their lengths
     for i, group in enumerate(groups):
         logger.debug("Group %s length: %s", i, num_tokens_from_string(group))
 
-    logger.debug("title + selftext = %s", num_tokens_from_string(title + selftext))
+        st.text(
+            f"Group {i} length {num_tokens_from_string(group)}",
+        )
+
+        st.code(group)
 
     # Generate the summary
-    # TODO: experiment with recursive summarization functions here. selftext can be long
     output = generate_summary(title, selftext[: estimate_word_count(500)], groups)
 
     logger.info(output)
@@ -286,18 +207,23 @@ def process(json_url: str = REDDIT_URL):
 
 
 # Create an input box for url
-reddit_url = st.text_input("Enter reddit url", REDDIT_URL)
+reddit_url = st.text_area("Enter reddit url", REDDIT_URL)
 
 # Create a button to submit the url
 if st.button("Get data"):
-    summary_data = process(reddit_url)
-    # Check if response is valid
-    if summary_data:
+    if not reddit_url.endswith(".json"):
+        st.error("must end with .json")
+
+    with st.spinner("Wait for it..."):
+        summary_data = process(reddit_url)
+        if not summary_data:
+            # Display error message if response is invalid
+            st.error("No Summary Data")
+
         # Display weather data in a textarea
         st.text_area(
             "Reddit Summary",
             summary_data,
         )
-    else:
-        # Display error message if response is invalid
-        st.error("No Summary Data")
+
+    st.success("Done!")
