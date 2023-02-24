@@ -4,7 +4,7 @@ import os
 import re
 import sys
 from datetime import datetime
-from typing import Any
+from typing import Any, Tuple
 
 import requests
 
@@ -78,7 +78,7 @@ def save_output(title: str, output: str) -> str:
     return output_file_path
 
 
-def is_valid_url(url: str) -> bool:
+def is_valid_reddit_url(url: str) -> bool:
     """
     Check if the URL is valid.
     """
@@ -92,3 +92,22 @@ def is_valid_url(url: str) -> bool:
         r"\.json$"  # ".json" at the end of the string
     )
     return bool(pattern.match(url))
+
+
+def get_metadata_from_reddit_json(data: list[dict[str, Any]]) -> Tuple[str, str]:
+    """
+    Get the title and selftext from the reddit json data.
+    """
+    try:
+        child_data = data[0]["data"]["children"][0]["data"]
+        title = child_data["title"]
+        selftext = child_data["selftext"]
+    except (KeyError, IndexError) as exc:
+        raise ValueError(
+            "Invalid JSON data. Please check the Reddit URL and try again."
+        ) from exc
+    if title is None:
+        raise ValueError("Title not found in Reddit thread data.")
+    if selftext is None:
+        raise ValueError("Selftext not found in Reddit thread data.")
+    return title, selftext

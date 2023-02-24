@@ -5,62 +5,33 @@ a summary of the reddit thread.
 # Import necessary modules
 
 import re
-from datetime import datetime
 from typing import Any, Dict, Generator, List, Tuple, Union
 
 import streamlit as st
 
+import config
 from presets import presets
-from utils.common import is_valid_url, request_json_from_url, save_output
+from utils.common import (
+    get_metadata_from_reddit_json,
+    is_valid_reddit_url,
+    request_json_from_url,
+    save_output,
+)
 from utils.logger import logger
 from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
+from utils.streamlit_debug import StreamlitDebug
 
-# Constants
-DEFAULT_CHUNK_TOKEN_LENGTH = 2000
-DEFAULT_NUMBER_OF_SUMMARIES = 3  # reduce this to 1 for testing
-DEFAULT_MAX_TOKEN_LENGTH = 3000  # max number of tokens for GPT-3
-THREAD_ID = (
-    "entertainment/comments/1193p9x/daft_punk_announce_new_random_access_memories"
-)
-REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}.json"  # URL of reddit thread
-SUBREDDIT = THREAD_ID.split("/", maxsplit=1)[0]
+debugger = StreamlitDebug()
+debugger.set_debugpy(flag=True, wait_for_client=True, host="localhost", port=8765)
 
-DEFAULT_INSTRUCTION_TEXT = (
-    f"(Todays Date: {datetime.now().strftime('%Y-%b-%d')}) Revise and improve the "
-    "article by incorporating relevant information from the comments. Ensure the "
-    "content is clear, engaging, and easy to understand for a general audience. "
-    "Avoid technical language, present facts objectively, and summarize key "
-    "comments from Reddit. Ensure that the overall sentiment expressed in the comments "
-    "is accurately reflected. Optimize for highly original content.  Use human-like "
-    "natural language, incorporate emotions, vary sentence length: Humans don't "
-    "always speak in complete sentences, use light humor to seem more human, however, "
-    "be careful not to overdo it. Ensure its written professionally, in a way "
-    "that is appropriate for the situation. Format the article using markdown and "
-    "include links from the original article/reddit thread."
+# Set page configuration
+st.set_page_config(
+    page_title="Reddit Thread GPT Summarizer", page_icon="🤖", layout="wide"
 )
 
 
-def get_metadata_from_reddit_json(data: list[dict[str, Any]]) -> Tuple[str, str]:
-    """
-    Get the title and selftext from the reddit json data.
-    """
-    try:
-        child_data = data[0]["data"]["children"][0]["data"]
-        title = child_data["title"]
-        selftext = child_data["selftext"]
-    except (KeyError, IndexError) as exc:
-        raise ValueError(
-            "Invalid JSON data. Please check the Reddit URL and try again."
-        ) from exc
-    if title is None:
-        raise ValueError("Title not found in Reddit thread data.")
-    if selftext is None:
-        raise ValueError("Selftext not found in Reddit thread data.")
-    return title, selftext
-
-
-def get_body_contents(
-    data: Union[Dict[str, Any], List[Any], str], path: List[str]
+def get_comment_bodies(
+    data: Union[Dict[str, Any], List[Any], str], path: List[Union[str, int]]
 ) -> Generator[Tuple[str, str], None, Any]:
     """
     Recursively iterate through the data and yield the path and value of the 'body' key.
@@ -74,12 +45,12 @@ def get_body_contents(
         # Iterate through the dictionary's key-value pairs
         for key, value in data.items():
             # Recursively call the function with the value and updated path
-            yield from get_body_contents(value, path + [key])
+            yield from get_comment_bodies(value, path + [key])
     # If data is a list, iterate through the elements
     elif isinstance(data, list):
         for index, item in enumerate(data):
             # Recursively call the function with the element and updated path
-            yield from get_body_contents(item, path + [repr(index)])
+            yield from get_comment_bodies(item, path + [repr(index)])
 
 
 def group_bodies_into_chunks(
@@ -120,6 +91,7 @@ def generate_summary(
     groups: List[str],
     number_of_summaries: int,
     max_token_length: int,
+    subreddit: str,
 ) -> str:
     """
     Generate a summary of the reddit thread using OpenAI's GPT-3 model.
@@ -130,26 +102,29 @@ def generate_summary(
     groups.insert(0, groups[0])
 
     # Use enumerate to get the index and the group in each iteration
-    for i, group in enumerate(groups[:number_of_summaries]):
+    for summary_num, comment_group in enumerate(groups[:number_of_summaries]):
         prompt = (
-            f"{instruction}\n\nTitle: {title}\n{selftext}\n\nr/{SUBREDDIT} on REDDIT\n"
-            f"COMMENTS BEGIN\n{group}\nCOMMENTS END\n\n"
-            "Title: "
+            f"{instruction}\n\nTitle: {title}\n{selftext}\n\nr/{subreddit} on"
+            f" REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n\nTitle: "
         )
-        st.subheader(f"summary prompt: {i + 1}")
-        st.code(prompt)
 
-        summary = complete_text(
-            prompt, max_token_length - num_tokens_from_string(prompt)
-        )
-        # insert the summary into the prefix
+        with st.expander(f"Prompt: {summary_num + 1}"):
+            st.code(prompt)
 
-        st.subheader(f"openai_response: {i + 1}")
-        st.code(summary)
+            with st.spinner("Generating summary..."):
+                summary = complete_text(
+                    prompt, max_token_length - num_tokens_from_string(prompt)
+                )
+                # insert the summary into the prefix
 
-        # Use format method to insert values into a string
-        output += f"============\nSUMMARY COUNT: {i}\n============\n"
-        output += f"PROMPT: {prompt}\n\n{summary}\n===========================\n\n"
+                st.subheader(f"OpenAI Completion Reponse: {summary_num + 1}")
+                st.code(summary)
+
+                # Use format method to insert values into a string
+                output += f"============\nSUMMARY COUNT: {summary_num}\n============\n"
+                output += (
+                    f"PROMPT: {prompt}\n\n{summary}\n===========================\n\n"
+                )
 
     return output
 
@@ -159,8 +134,9 @@ def process(
     chunk_token_length: int,
     number_of_summaries: int,
     max_token_length: int,
-    json_url: str = REDDIT_URL,
-) -> str:
+    json_url: str,
+    subreddit: str,
+) -> str | None:
     """
     Process the reddit thread JSON and generate a summary.
     """
@@ -168,9 +144,9 @@ def process(
         # get the reddit json, will exit if there is an error
         reddit_json = request_json_from_url(json_url)
     except ValueError as exc:
-        raise ValueError(
-            "Invalid URL. Please enter a valid Reddit URL and try again."
-        ) from exc
+        st.error("Invalid URL. Please enter a valid Reddit URL and try again.")
+        logger.exception(exc)
+        return None
 
     # write raw json output to file for debugging
     with open("output.json", "w", encoding="utf-8") as raw_json_file:
@@ -178,103 +154,128 @@ def process(
 
     # Get the title and selftext from the reddit thread JSON
     title, selftext = get_metadata_from_reddit_json(reddit_json)
-
-    st.header(title)
-    st.text(selftext)
     # get an array of body contents
-    contents = list(get_body_contents(reddit_json, []))
+    contents = list(get_comment_bodies(reddit_json, []))
 
     if not contents:
         st.error("No body contents found")
         st.stop()
 
-    # concatenate the bodies into an array of newline delimited strings
-    groups = group_bodies_into_chunks(contents, chunk_token_length)
-    length_heading: str = "title + selftext string length as tokens =" + str(
-        num_tokens_from_string(title + selftext)
-    )
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Original")
 
-    logger.debug(length_heading)
-    st.text(length_heading)
-    # print groups along with their lengths
-    for i, group in enumerate(groups):
-        st.text(
-            f"Group {i} length {num_tokens_from_string(group)}",
+        st.subheader(title)
+        st.text(selftext)
+
+        # concatenate the bodies into an array of newline delimited strings
+        groups = group_bodies_into_chunks(contents, chunk_token_length)
+
+        logger.debug(
+            "title + selftext string length as tokens =%s",
+            num_tokens_from_string(title + selftext),
         )
+        # print groups along with their lengths
 
-        st.code(group)
+        for i, group in enumerate(groups):
+            with st.expander(
+                f"Group {i} length {num_tokens_from_string(group)} tokens"
+            ):
+                st.code(group)
 
-    # Generate the summary, really should do recursive summary on selftext here
-    output = generate_summary(
-        instruction,
-        title,
-        selftext[: estimate_word_count(500)],
-        groups,
-        number_of_summaries,
-        max_token_length,
-    )
+    with col2:
+        st.subheader("Generated")
 
-    logger.info(output)
+        # Generate the summary, really should do recursive summary on selftext here
+        output = generate_summary(
+            instruction,
+            title,
+            selftext[: estimate_word_count(500)],
+            groups,
+            number_of_summaries,
+            max_token_length,
+            subreddit,
+        )
 
     save_output(title, output)
     return output
 
 
-st.header("Reddit Thread GPT Summarizer")
-
-placeholder = st.empty()
-
-# Create an input box for url
-with placeholder.container():
-    reddit_url = st.text_area("Enter REDDIT URL:", REDDIT_URL)
-
-    instruction_text: str = st.text_area(
-        "Instructions", DEFAULT_INSTRUCTION_TEXT, height=250
-    )
-    model = st.radio("Select Model", list(presets.keys()))
-
-    if model:
-        st.text(f"You selected model {model}. Here are the parameters:")
-        st.text(presets[model])
-    else:
-        st.text("Please select a model.")
-
-    chunk_token_length_input = int(
-        st.number_input("Chunk Token Length", DEFAULT_CHUNK_TOKEN_LENGTH)
-    )
-
-    number_of_summaries_input = int(st.number_input("Number of Summaries", 1, 10))
-    max_token_length_input = int(
-        st.number_input("Max Token Length", DEFAULT_MAX_TOKEN_LENGTH)
-    )
-    btn = st.button("Do it!")
-
-# Create a button to submit the url
-if btn:
-    if not is_valid_url(reddit_url):
+def generate_summary_data(
+    text: str,
+    chunk_token_length: int,
+    number_of_summaries: int,
+    max_token_length: int,
+    url: str,
+    subreddit: str,
+) -> None:
+    """
+    Generate a summary of the reddit thread using OpenAI's GPT-3 model.
+    """
+    if not is_valid_reddit_url(url):
         st.error("Please enter a valid Reddit URL ending in '.json'.")
-        st.stop()
+        return
 
-    placeholder.empty()
     summary_placeholder = st.empty()
 
     with summary_placeholder.container():
         with st.spinner("Wait for it..."):
-            st.subheader("Reddit Original Post")
             summary_data = process(
-                instruction_text,
-                chunk_token_length_input,
-                number_of_summaries_input,
-                max_token_length_input,
-                reddit_url,
+                text,
+                chunk_token_length,
+                number_of_summaries,
+                max_token_length,
+                url,
+                subreddit,
             )
             if not summary_data:
                 # Display error message if response is invalid
                 st.error("No Summary Data")
-                st.stop()
+                return
 
         st.success("Done!")
         clear_btn = st.button("Clear")
 
         if clear_btn:
-            summary_placeholder = st.empty()
+            summary_placeholder.empty()
+
+
+st.header("Reddit Thread GPT Summarizer")
+
+# Create an input box for url
+with st.container():
+    reddit_url = st.text_area("Enter REDDIT URL:", config.REDDIT_URL)
+
+    with st.expander("Edit Settings"):
+        instruction_text: str = st.text_area(
+            "Instructions", config.DEFAULT_INSTRUCTION_TEXT, height=250
+        )
+        model = st.radio("Select Model", list(presets.keys()))
+
+        if model:
+            st.text(f"You selected model {model}. Here are the parameters:")
+            st.text(presets[model])
+        else:
+            st.text("Please select a model.")
+
+        chunk_token_length_input = int(
+            st.number_input("Chunk Token Length", config.DEFAULT_CHUNK_TOKEN_LENGTH)
+        )
+
+        number_of_summaries_input = int(st.number_input("Number of Summaries", 1, 10))
+        max_token_length_input = int(
+            st.number_input("Max Token Length", config.DEFAULT_MAX_TOKEN_LENGTH)
+        )
+
+    btn = st.button("Generate it!")
+
+# Create a button to submit the url
+if btn:
+    generate_summary_data(
+        instruction_text,
+        chunk_token_length_input,
+        number_of_summaries_input,
+        max_token_length_input,
+        config.REDDIT_URL,
+        config.SUBREDDIT,
+    )

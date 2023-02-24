@@ -2,11 +2,11 @@
 import pytest
 
 from app import (
-    DEFAULT_CHUNK_TOKEN_LENGTH,
-    get_body_contents,
+    get_comment_bodies,
     get_metadata_from_reddit_json,
     group_bodies_into_chunks,
 )
+from config import DEFAULT_CHUNK_TOKEN_LENGTH
 
 
 def test_get_metadata_from_reddit_json() -> None:
@@ -40,8 +40,8 @@ def test_get_metadata_from_reddit_json() -> None:
         get_metadata_from_reddit_json(data)
 
 
-def test_get_body_contents():
-    """Test get_body_contents()."""
+def test_get_comment_bodies():
+    """Test get_comment_bodies()."""
     # Test correct output with dictionary as input
     data = {
         "list": [
@@ -53,7 +53,7 @@ def test_get_body_contents():
         ("list/0", "[author 1] Test Body"),
         ("list/1", "[author 2] Test Body 2"),
     ]
-    assert list(get_body_contents(data, [])) == expected_output
+    assert list(get_comment_bodies(data, [])) == expected_output
 
     # Test correct output with dictionary as input
     data = {
@@ -61,7 +61,7 @@ def test_get_body_contents():
         "key2": {"key3": {"author": "author 1", "body": "Test Body"}},
     }
     expected_output = [("key2/key3", "[author 1] Test Body")]
-    assert list(get_body_contents(data, [])) == expected_output
+    assert list(get_comment_bodies(data, [])) == expected_output
 
 
 def test_group_bodies_into_chunks() -> None:
