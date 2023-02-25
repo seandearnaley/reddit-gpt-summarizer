@@ -4,9 +4,11 @@ import os
 import re
 import sys
 from datetime import datetime
-from typing import Any, Tuple
+from typing import Any, Dict, Generator, List, Tuple, Union
 
 import requests
+
+from utils.openai import estimate_word_count, num_tokens_from_string
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
@@ -111,3 +113,49 @@ def get_metadata_from_reddit_json(data: list[dict[str, Any]]) -> Tuple[str, str]
     if selftext is None:
         raise ValueError("Selftext not found in Reddit thread data.")
     return title, selftext
+
+
+def get_comment_bodies(
+    data: Union[Dict[str, Any], List[Any], str], path: List[Union[str, int]]
+) -> Generator[Tuple[str, str], None, Any]:
+    """
+    Recursively iterate through the data and yield the path and value of the 'body' key.
+    """
+    # If data is a dictionary, check if it has a 'body' key
+    if isinstance(data, dict):
+        if "body" in data:
+            # If the dictionary has a 'body' key, yield the path and value of the 'body'
+            path_str = "/".join([str(x) for x in path])
+            yield (path_str, "[" + data["author"] + "] " + data["body"])
+        # Iterate through the dictionary's key-value pairs
+        for key, value in data.items():
+            # Recursively call the function with the value and updated path
+            yield from get_comment_bodies(value, path + [key])
+    # If data is a list, iterate through the elements
+    elif isinstance(data, list):
+        for index, item in enumerate(data):
+            # Recursively call the function with the element and updated path
+            yield from get_comment_bodies(item, path + [repr(index)])
+
+
+def group_bodies_into_chunks(
+    contents: List[Tuple[str, str]], token_length: int
+) -> List[str]:
+    """
+    Concatenate the bodies into an array of newline delimited strings that are
+    < token_length tokens long
+    """
+    results: List[str] = []
+    result = ""
+    for body_tuple in contents:
+        if body_tuple[1]:
+            # replace one or more consecutive newline characters
+            body_tuple = (body_tuple[0], re.sub(r"\n+", "\n", body_tuple[1]))
+            result += body_tuple[1][: estimate_word_count(1000)] + "\n"
+
+            if num_tokens_from_string(result) > token_length:
+                results.append(result)
+                result = ""
+    if result:
+        results.append(result)
+    return results

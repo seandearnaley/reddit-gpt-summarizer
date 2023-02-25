@@ -24,6 +24,6 @@ DEFAULT_INSTRUCTION_TEXT = (
     "natural language, incorporate emotions, vary sentence length: Humans don't "
     "always speak in complete sentences, use light humor to seem more human, however, "
     "be careful not to overdo it. Ensure its written professionally, in a way "
-    "that is appropriate for the situation. Format the article using markdown and "
+    "that is appropriate for the situation. Format the document using markdown and "
     "include links from the original article/reddit thread."
 )

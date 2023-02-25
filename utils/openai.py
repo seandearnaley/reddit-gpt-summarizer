@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from utils.logger import logger
 
 MAX_BODY_TOKEN_SIZE = 1000  # not in use yet
-DEFAULT_GPT_MODEL = "text-davinci-003"  # GPT-3 model to use
+DEFAULT_GPT_MODEL = "text-davinci-002"  # GPT-3 model to use
 
 try:
     load_dotenv()
