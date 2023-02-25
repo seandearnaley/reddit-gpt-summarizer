@@ -276,6 +276,6 @@ if btn:
         chunk_token_length_input,
         number_of_summaries_input,
         max_token_length_input,
-        config.REDDIT_URL,
+        reddit_url,
         config.SUBREDDIT,
     )
