@@ -8,7 +8,7 @@ import openai
 import tiktoken
 from dotenv import load_dotenv
 
-from utils.logger import logger
+from logger import app_logger
 
 MAX_BODY_TOKEN_SIZE = 1000  # not in use yet
 DEFAULT_GPT_MODEL = "text-davinci-002"  # GPT-3 model to use
@@ -16,7 +16,7 @@ DEFAULT_GPT_MODEL = "text-davinci-002"  # GPT-3 model to use
 try:
     load_dotenv()
 except FileNotFoundError:
-    logger.error("Could not find .env file. Please create one.")
+    app_logger.error("Could not find .env file. Please create one.")
     sys.exit(1)
 
 openai.organization = os.getenv("OPENAI_ORG_ID")
@@ -68,7 +68,7 @@ def complete_text(prompt: str, max_tokens: int) -> str:
     )
 
     if len(response) == 0:
-        logger.error("response=%s", response)  # error
+        app_logger.error("response=%s", response)  # error
         return "Error: unable to generate response."
 
     return response["choices"][0]["text"]  # completed_text

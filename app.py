@@ -7,10 +7,11 @@ a summary of the reddit thread.
 
 from typing import Dict, List, Optional
 
-import streamlit as st
-
 import config
+from debug_tools import SetupDebugPy
+from logger import app_logger
 from presets import presets
+from streamlit_setup import st
 from utils.common import (
     get_comment_bodies,
     get_metadata_from_reddit_json,
@@ -19,79 +20,70 @@ from utils.common import (
     request_json_from_url,
     save_output,
 )
-from utils.logger import logger
 from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
-from utils.streamlit_debug import StreamlitDebug
 
-debugger = StreamlitDebug()
-debugger.set_debugpy(flag=True, wait_for_client=True, host="localhost", port=8765)
-
-# Set page configuration
-st.set_page_config(
-    page_title="Reddit Thread GPT Summarizer", page_icon="🤖", layout="wide"
+debugger = SetupDebugPy()
+debugger.set_debugpy(
+    st, app_logger, flag=True, wait_for_client=False, host="localhost", port=8765
 )
 
 
+# @log_with_logging()
+def generate_prompts(
+    title: str, selftext: str, groups: List[str], query: str, subreddit: str
+) -> List[str]:
+    """Generate the prompts for the OpenAI API."""
+    prompts: List[str] = []
+    for comment_group in groups:
+        prompt = (
+            f"{query}\n\nTitle:"
+            f" {title}\n{selftext[: estimate_word_count(500)]}\n\nr/{subreddit} on"
+            f" REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n\nTitle: "
+        )
+        prompts.append(prompt)
+    return prompts
+
+
+def generate_summaries(prompts: List[str], max_token_length: int) -> List[str]:
+    """Generate the summaries from the prompts."""
+    summaries: List[str] = []
+    for prompt in prompts:
+        summary = complete_text(
+            prompt, max_token_length - num_tokens_from_string(prompt)
+        )
+        summaries.append(summary)
+    return summaries
+
+
 def generate_data(
-    instruction: str,
+    query: str,
     chunk_token_length: int,
     number_of_summaries: int,
     max_token_length: int,
     json_url: str,
-    subreddit: str,
 ) -> Optional[Dict[str, str | List[str]]]:
     """
     Process the reddit thread JSON and generate a summary.
     """
-    try:
-        # get the reddit json, will exit if there is an error
-        reddit_json = request_json_from_url(json_url)
-    except ValueError as exc:
+    reddit_json = request_json_from_url(json_url)
+    if not reddit_json:
         st.error("Invalid URL. Please enter a valid Reddit URL and try again.")
-        logger.exception(exc)
         return None
 
-    # write raw json output to file for debugging
-    with open("output.json", "w", encoding="utf-8") as raw_json_file:
-        raw_json_file.write(str(reddit_json))
-
-    # Get the title and selftext from the reddit thread JSON
     title, selftext = get_metadata_from_reddit_json(reddit_json)
-    # get an array of body contents
     contents = list(get_comment_bodies(reddit_json, []))
-
-    # concatenate the bodies into an array of newline delimited strings
     groups = group_bodies_into_chunks(contents, chunk_token_length)
-
-    logger.debug(
-        "title + selftext string length as tokens =%s",
-        num_tokens_from_string(title + selftext),
-    )
-
-    # Generate the summary, really should do recursive summary on selftext here
-    output = ""
-
-    # use the first group twice because of top comments
     groups.insert(0, groups[0])
 
-    prompts: List[str] = []
-    summaries: List[str] = []
+    prompts = generate_prompts(
+        title, selftext, groups[:number_of_summaries], query, config.SUBREDDIT
+    )
+    summaries = generate_summaries(prompts, max_token_length)
 
-    # Use enumerate to get the index and the group in each iteration
-    for summary_num, comment_group in enumerate(groups[:number_of_summaries]):
-        prompt = (
-            f"{instruction}\n\nTitle:"
-            f" {title}\n{selftext[: estimate_word_count(500)]}\n\nr/{subreddit} on"
-            f" REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n\nTitle: "
-        )
-        summary = complete_text(
-            prompt, max_token_length - num_tokens_from_string(prompt)
-        )
-        prompts.append(prompt)
-        summaries.append(summary)
-
-        # Use format method to insert values into a string
-        output += f"============\nSUMMARY COUNT: {summary_num}\n============\n"
+    output = ""
+    for i, summary in enumerate(summaries):
+        prompt = prompts[i]
+        output += f"============\nSUMMARY COUNT: {i}\n============\n"
         output += f"PROMPT: {prompt}\n\n{summary}\n===========================\n\n"
 
     return {
@@ -118,7 +110,7 @@ def render_layout() -> None:
         return
 
     with st.expander("Edit Settings"):
-        instruction_text: str = st.text_area(
+        query_text: str = st.text_area(
             "Instructions", config.DEFAULT_INSTRUCTION_TEXT, height=250
         )
         model = st.radio("Select Model", list(presets.keys()))
@@ -157,12 +149,11 @@ def render_layout() -> None:
         with summary_placeholder.container():
             with st.spinner("Wait for it..."):
                 result = generate_data(
-                    instruction_text,
+                    query_text,
                     chunk_token_length,
                     number_of_summaries,
                     max_token_length,
                     reddit_url,
-                    config.SUBREDDIT,
                 )
 
                 if result is None:
