@@ -19,6 +19,7 @@ TODAYS_DATE: str = datetime.now().strftime("%Y-%b-%d")
 LOG_NAME = "reddit_gpt_summarizer_log"
 APP_TITLE = "Reddit Thread GPT Summarizer"
 
+MAX_BODY_TOKEN_SIZE = 1000  # not in use yet
 DEFAULT_QUERY_TEXT = (
     f"(Todays Date: {TODAYS_DATE}) Revise and improve the "
     "article by incorporating relevant information from the comments. Ensure the "

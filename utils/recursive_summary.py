@@ -1,6 +1,8 @@
 """
 This script will take a reddit URL and use OpenAI's GPT-3 model to generate
 a summary of the reddit thread.
+
+NOTE: provided as a helper script for your GPT apps, not used by the Streamlit app.
 """
 # Import necessary modules
 
@@ -21,6 +23,10 @@ MAX_TOKENS = 2049  # max number of token (note: text-curie-001 has a max of 2048
 GPT_MODEL = "text-curie-001"  # GPT-3 model to use
 MAX_CHUNK_LENGTH = 2000
 
+# Token bucket rate limiting parameters
+RATE_LIMIT = 10  # max number of requests per minute
+RATE_LIMIT_PERIOD = 60  # period in seconds
+
 try:
     load_dotenv()
 except FileNotFoundError:
@@ -29,10 +35,6 @@ except FileNotFoundError:
 
 openai.organization = os.environ.get("OPENAI_ORG_ID")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
-
-# Token bucket rate limiting parameters
-RATE_LIMIT = 10  # max number of requests per minute
-RATE_LIMIT_PERIOD = 60  # period in seconds
 
 
 rate_limits = (RequestRate(10, Duration.MINUTE),)  # 10 requests a minute

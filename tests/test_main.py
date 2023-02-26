@@ -1,12 +1,12 @@
 """Test main.py."""
 import pytest
 
-from app import (
+from config import DEFAULT_CHUNK_TOKEN_LENGTH
+from services.data import (
     get_comment_bodies,
     get_metadata_from_reddit_json,
     group_bodies_into_chunks,
 )
-from config import DEFAULT_CHUNK_TOKEN_LENGTH
 
 
 def test_get_metadata_from_reddit_json() -> None:

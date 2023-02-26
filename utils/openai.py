@@ -1,26 +1,13 @@
 """OpenAI Utility functions for the Reddit Scraper project."""
 import math
-import os
-import sys
 from typing import Any, Dict
 
 import openai
 import tiktoken
-from dotenv import load_dotenv
 
 from logger import app_logger
 
-MAX_BODY_TOKEN_SIZE = 1000  # not in use yet
 DEFAULT_GPT_MODEL = "text-davinci-002"  # GPT-3 model to use
-
-try:
-    load_dotenv()
-except FileNotFoundError:
-    app_logger.error("Could not find .env file. Please create one.")
-    sys.exit(1)
-
-openai.organization = os.getenv("OPENAI_ORG_ID")
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def num_tokens_from_string(string: str, encoding_name: str = "gpt2") -> int:
@@ -45,7 +32,13 @@ def estimate_word_count(num_tokens: int) -> int:
     return estimated_word_count
 
 
-def complete_text(prompt: str, max_tokens: int, model: str = DEFAULT_GPT_MODEL) -> str:
+def complete_text(
+    prompt: str,
+    max_tokens: int,
+    org_id: str,
+    api_key: str,
+    model: str = DEFAULT_GPT_MODEL,
+) -> str:
     """
     Use OpenAI's GPT-3 model to complete text based on the given prompt.
 
@@ -53,10 +46,16 @@ def complete_text(prompt: str, max_tokens: int, model: str = DEFAULT_GPT_MODEL) 
         prompt (str): The prompt to use as the starting point for text completion.
         max_tokens (int, optional): The maximum number of tokens to generate in the
         response. Defaults to MAX_TOKENS - num_tokens_from_string(prompt).
+        org_id (str): The OpenAI organization ID.
+        api_key (str): The OpenAI API key.
+        model (str, optional): The OpenAI GPT-3 model to use. Defaults to
+        DEFAULT_GPT_MODEL.
 
     Returns:
         str: The completed text.
     """
+    openai.organization = org_id
+    openai.api_key = api_key
 
     if max_tokens <= 0:
         raise ValueError("The input max_tokens must be a positive integer.")
@@ -74,19 +73,19 @@ def complete_text(prompt: str, max_tokens: int, model: str = DEFAULT_GPT_MODEL) 
     return response["choices"][0]["text"]  # completed_text
 
 
-def summarize_body(body: str, max_length: int = MAX_BODY_TOKEN_SIZE) -> str:
+def get_models(org_id: str, api_key: str) -> Dict[str, Any]:
     """
-    Summarizes a body of text to be at most max_length tokens long.
+    Get a list of all available GPT-3 models.
+
+    Args:
+        org_id (str): The OpenAI organization ID.
+        api_key (str): The OpenAI API key.
+
+    Returns:
+        dict: The response from OpenAI's Engine API.
     """
-    if num_tokens_from_string(body) <= max_length:
-        return body
+    openai.organization = org_id
+    openai.api_key = api_key
 
-    summary_string = f"summarize this text to under {max_length} GPT-2 tokens:\n" + body
-
-    return complete_text(summary_string, num_tokens_from_string(summary_string))
-
-
-def get_models() -> Dict[str, Any]:
-    """Get a list of all available GPT-3 models."""
     response: Dict[str, Any] = openai.Engine.list()  # type: ignore
     return response["data"]
