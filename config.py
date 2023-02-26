@@ -3,6 +3,10 @@
 from datetime import datetime
 
 # Constants
+
+ATTACH_DEBUGGER = False
+WAIT_FOR_CLIENT = False
+DEFAULT_DEBUG_PORT = 8765
 DEFAULT_CHUNK_TOKEN_LENGTH = 2000
 DEFAULT_NUMBER_OF_SUMMARIES = 3  # reduce this to 1 for testing
 DEFAULT_MAX_TOKEN_LENGTH = 3000  # max number of tokens for GPT-3
@@ -12,7 +16,8 @@ THREAD_ID = (
 REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}.json"  # URL of reddit thread
 SUBREDDIT = THREAD_ID.split("/", maxsplit=1)[0]
 TODAYS_DATE: str = datetime.now().strftime("%Y-%b-%d")
-
+LOG_NAME = "reddit_gpt_summarizer_log"
+APP_TITLE = "Reddit Thread GPT Summarizer"
 
 DEFAULT_INSTRUCTION_TEXT = (
     f"(Todays Date: {TODAYS_DATE}) Revise and improve the "

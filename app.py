@@ -7,8 +7,17 @@ a summary of the reddit thread.
 
 from typing import Dict, List, Optional
 
-import config
-from debug_tools import SetupDebugPy
+from config import (
+    ATTACH_DEBUGGER,
+    DEFAULT_CHUNK_TOKEN_LENGTH,
+    DEFAULT_INSTRUCTION_TEXT,
+    DEFAULT_MAX_TOKEN_LENGTH,
+    DEFAULT_NUMBER_OF_SUMMARIES,
+    REDDIT_URL,
+    SUBREDDIT,
+    WAIT_FOR_CLIENT,
+)
+from debug_tools import setup_debugpy
 from logger import app_logger
 from presets import presets
 from streamlit_setup import st
@@ -22,9 +31,13 @@ from utils.common import (
 )
 from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
 
-debugger = SetupDebugPy()
-debugger.set_debugpy(
-    st, app_logger, flag=True, wait_for_client=False, host="localhost", port=8765
+setup_debugpy(
+    st,
+    app_logger,
+    flag=ATTACH_DEBUGGER,
+    wait_for_client=WAIT_FOR_CLIENT,
+    host="localhost",
+    port=8765,
 )
 
 
@@ -76,7 +89,7 @@ def generate_data(
     groups.insert(0, groups[0])
 
     prompts = generate_prompts(
-        title, selftext, groups[:number_of_summaries], query, config.SUBREDDIT
+        title, selftext, groups[:number_of_summaries], query, SUBREDDIT
     )
     summaries = generate_summaries(prompts, max_token_length)
 
@@ -104,14 +117,14 @@ def render_layout() -> None:
     st.header("Reddit Thread GPT Summarizer")
     # Create an input box for url
 
-    reddit_url = st.text_area("Enter REDDIT URL:", config.REDDIT_URL)
+    reddit_url = st.text_area("Enter REDDIT URL:", REDDIT_URL)
     if not is_valid_reddit_url(reddit_url):
         st.error("Please enter a valid Reddit URL ending in '.json'.")
         return
 
     with st.expander("Edit Settings"):
         query_text: str = st.text_area(
-            "Instructions", config.DEFAULT_INSTRUCTION_TEXT, height=250
+            "Instructions", DEFAULT_INSTRUCTION_TEXT, height=250
         )
         model = st.radio("Select Model", list(presets.keys()))
 
@@ -121,23 +134,21 @@ def render_layout() -> None:
 
         chunk_token_length = int(
             st.number_input(
-                "Chunk Token Length", value=config.DEFAULT_CHUNK_TOKEN_LENGTH, step=1
+                "Chunk Token Length", value=DEFAULT_CHUNK_TOKEN_LENGTH, step=1
             )
         )
 
         number_of_summaries = int(
             st.number_input(
                 "Number of Summaries",
-                value=config.DEFAULT_NUMBER_OF_SUMMARIES,
+                value=DEFAULT_NUMBER_OF_SUMMARIES,
                 min_value=1,
                 max_value=10,
                 step=1,
             )
         )
         max_token_length = int(
-            st.number_input(
-                "Max Token Length", value=config.DEFAULT_MAX_TOKEN_LENGTH, step=1
-            )
+            st.number_input("Max Token Length", value=DEFAULT_MAX_TOKEN_LENGTH, step=1)
         )
 
     btn = st.button("Generate it!")

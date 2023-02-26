@@ -7,6 +7,8 @@ from typing import Any, Callable, TypeVar, cast
 
 import streamlit as st
 
+from config import APP_TITLE
+
 F = TypeVar("F", bound=Callable[..., Any])
 
 
@@ -28,6 +30,4 @@ def log_with_streamlit(
 
 
 # Set page configuration
-st.set_page_config(
-    page_title="Reddit Thread GPT Summarizer", page_icon="🤖", layout="wide"
-)
+st.set_page_config(page_title=APP_TITLE, page_icon="🤖", layout="wide")

@@ -6,9 +6,9 @@ from typing import Any, Callable, Optional, TypeVar, cast
 
 import colorlog
 
-F = TypeVar("F", bound=Callable[..., Any])
+from config import LOG_NAME
 
-LOG_NAME = "reddit_gpt_summarizer_log"
+F = TypeVar("F", bound=Callable[..., Any])
 
 app_logger = logging.getLogger(LOG_NAME)
 
