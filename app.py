@@ -54,9 +54,9 @@ def generate_prompts(
     prompts: List[str] = []
     for comment_group in groups:
         prompt = (
-            f"{query}\n\nTitle: "
+            f"{query}\n\n```Title: "
             f"{title}\n{selftext[: estimate_word_count(500)]}\n\nr/{subreddit} on "
-            f"REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n\nTitle: "
+            f"REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n```\nTitle: "
         )
         prompts.append(prompt)
     return prompts
@@ -194,7 +194,7 @@ def render_layout() -> None:
 
                 save_output(str(title), str(output))
 
-                st.subheader("Original")
+                st.text("Original Content:")
                 st.subheader(title)
                 st.text(selftext)
 
