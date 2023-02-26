@@ -11,9 +11,9 @@ from config import (
     ATTACH_DEBUGGER,
     DEFAULT_CHUNK_TOKEN_LENGTH,
     DEFAULT_GPT_MODEL,
-    DEFAULT_INSTRUCTION_TEXT,
     DEFAULT_MAX_TOKEN_LENGTH,
     DEFAULT_NUMBER_OF_SUMMARIES,
+    DEFAULT_QUERY_TEXT,
     REDDIT_URL,
     SUBREDDIT,
     WAIT_FOR_CLIENT,
@@ -53,9 +53,9 @@ def generate_prompts(
     prompts: List[str] = []
     for comment_group in groups:
         prompt = (
-            f"{query}\n\nTitle:"
-            f" {title}\n{selftext[: estimate_word_count(500)]}\n\nr/{subreddit} on"
-            f" REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n\nTitle: "
+            f"{query}\n\nTitle: "
+            f"{title}\n{selftext[: estimate_word_count(500)]}\n\nr/{subreddit} on "
+            f"REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n\nTitle: "
         )
         prompts.append(prompt)
     return prompts
@@ -127,9 +127,7 @@ def render_layout() -> None:
         return
 
     with st.expander("Edit Settings"):
-        query_text: str = st.text_area(
-            "Instructions", DEFAULT_INSTRUCTION_TEXT, height=250
-        )
+        query_text: str = st.text_area("Instructions", DEFAULT_QUERY_TEXT, height=250)
 
         models = get_models()
         model_ids = [model["id"] for model in models]  # type: ignore

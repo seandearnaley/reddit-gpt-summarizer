@@ -19,7 +19,7 @@ TODAYS_DATE: str = datetime.now().strftime("%Y-%b-%d")
 LOG_NAME = "reddit_gpt_summarizer_log"
 APP_TITLE = "Reddit Thread GPT Summarizer"
 
-DEFAULT_INSTRUCTION_TEXT = (
+DEFAULT_QUERY_TEXT = (
     f"(Todays Date: {TODAYS_DATE}) Revise and improve the "
     "article by incorporating relevant information from the comments. Ensure the "
     "content is clear, engaging, and easy to understand for a general audience. "
