@@ -1597,6 +1597,22 @@ files = [
 ]
 
 [[package]]
+name = "pyrate-limiter"
+version = "2.10.0"
+description = "Python Rate-Limiter using Leaky-Bucket Algorithm"
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "pyrate_limiter-2.10.0-py3-none-any.whl", hash = "sha256:a99e52159f5ed5eb58118bed8c645e30818e7c0e0d127a0585c8277c776b0f7f"},
+    {file = "pyrate_limiter-2.10.0.tar.gz", hash = "sha256:98cc52cdbe058458e945ae87d4fd5a73186497ffa545ee6e98372f8599a5bd34"},
+]
+
+[package.extras]
+all = ["filelock (>=3.0)", "redis (>=3.3,<4.0)", "redis-py-cluster (>=2.1.3,<3.0.0)"]
+docs = ["furo (>=2022.3.4,<2023.0.0)", "myst-parser (>=0.17)", "sphinx (>=4.3.0,<5.0.0)", "sphinx-autodoc-typehints (>=1.17,<2.0)", "sphinx-copybutton (>=0.5)", "sphinxcontrib-apidoc (>=0.3,<0.4)"]
+
+[[package]]
 name = "pyrsistent"
 version = "0.19.3"
 description = "Persistent/Functional/Immutable data structures"
@@ -1713,17 +1729,6 @@ files = [
 
 [package.dependencies]
 tzdata = {version = "*", markers = "python_version >= \"3.6\""}
-
-[[package]]
-name = "ratelimit"
-version = "2.2.1"
-description = "API rate limit decorator"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "ratelimit-2.2.1.tar.gz", hash = "sha256:af8a9b64b821529aca09ebaf6d8d279100d766f19e90b5059ac6a718ca6dee42"},
-]
 
 [[package]]
 name = "regex"
@@ -2394,4 +2399,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.9.7 || >3.9.7,<4.0"
-content-hash = "473e5b339d7c641b0381f830be45025efd5bc4a105c75af00625f7df1bd4de59"
+content-hash = "e8d82f7a4e3de699f65985fdc4ec4c70a7ee8b680d1b64927b0c2c00ef886302"
