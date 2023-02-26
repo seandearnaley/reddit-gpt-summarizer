@@ -5,7 +5,7 @@ from typing import Any, Dict
 import openai
 import tiktoken
 
-from logger import app_logger
+from log_tools import app_logger
 
 DEFAULT_GPT_MODEL = "text-davinci-002"  # GPT-3 model to use
 

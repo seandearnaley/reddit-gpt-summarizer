@@ -109,6 +109,7 @@ def render_summary(result: Dict[str, Any]) -> None:
 def render_layout(
     org_id: str,
     api_key: str,
+    app_logger: Any = None,
     reddit_url: Optional[str] = None,
     selected_model: Optional[str] = None,
     settings: Optional[Dict[str, Any]] = None,
@@ -134,6 +135,7 @@ def render_layout(
 
         with summary_placeholder.container():
             with st.spinner("Wait for it..."):
+                app_logger.info("Generating summary data")
                 result = generate_summary_data(
                     settings["query_text"],
                     settings["chunk_token_length"],
@@ -150,6 +152,7 @@ def render_layout(
                     st.stop()
 
                 render_summary(result)
+                app_logger.info("Summary data generated")
             st.success("Done!")
 
         if st.button("Clear"):

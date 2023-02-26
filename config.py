@@ -7,9 +7,18 @@ DEFAULT_GPT_MODEL = "text-davinci-003"
 ATTACH_DEBUGGER = False
 WAIT_FOR_CLIENT = False
 DEFAULT_DEBUG_PORT = 8765
+DEBUGPY_HOST = "localhost"
 DEFAULT_CHUNK_TOKEN_LENGTH = 2000
 DEFAULT_NUMBER_OF_SUMMARIES = 3  # reduce this to 1 for testing
 DEFAULT_MAX_TOKEN_LENGTH = 3000  # max number of tokens for GPT-3
+LOG_FILE_PATH = "./logs/log.log"
+LOG_COLORS = {
+    "DEBUG": "cyan",
+    "INFO": "green",
+    "WARNING": "yellow",
+    "ERROR": "red",
+    "CRITICAL": "bold_red",
+}
 THREAD_ID = (
     "entertainment/comments/1193p9x/daft_punk_announce_new_random_access_memories"
 )

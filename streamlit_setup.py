@@ -1,32 +1,29 @@
 """
-utils for setting up streamlit
+Utils for setting up Streamlit.
 """
-# Import necessary modules
 from functools import wraps
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, Callable
 
 import streamlit as st
 
 from config import APP_TITLE
 
-F = TypeVar("F", bound=Callable[..., Any])
 
-
-def log_with_streamlit(
-    streamlit: Any = st,
-) -> Callable[[F], F]:
+def write_to_streamlit(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to write function calls and return values to a Streamlit widget."""
 
-    def decorator(func: F) -> F:
-        @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        try:
             result = func(*args, **kwargs)
-            streamlit.write(f"{func.__name__} returned {result}")
-            return result
+        except Exception as exception:
+            st.write(f"Error occurred in {func.__name__}: {exception}")  # type: ignore
+            raise exception
 
-        return cast(F, wrapper)
+        st.write(f"{func.__name__} returned {result}")  # type: ignore
+        return result
 
-    return decorator
+    return wrapper
 
 
 # Set page configuration

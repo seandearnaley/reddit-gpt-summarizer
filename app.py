@@ -6,17 +6,19 @@ a summary of the reddit thread.
 
 
 import os
+from typing import Tuple
 
 from dotenv import load_dotenv
 
-from config import ATTACH_DEBUGGER, WAIT_FOR_CLIENT
+from config import ATTACH_DEBUGGER, DEBUGPY_HOST, DEFAULT_DEBUG_PORT, WAIT_FOR_CLIENT
 from debug_tools import setup_debugpy
-from logger import app_logger
+from log_tools import AppLogger, app_logger, log
 from services.ui import render_layout
-from streamlit_setup import st
+from streamlit_setup import st, write_to_streamlit
 
 
-def load_env():
+@write_to_streamlit
+def load_env() -> Tuple[str, str, AppLogger]:
     """
     Load the environment variables from the .env file.
 
@@ -40,10 +42,11 @@ def load_env():
         st.error(err_msg)
         st.stop()
 
-    return org_id, api_key
+    return org_id, api_key, app_logger
 
 
-def main():
+@log
+def main() -> None:
     """Main entry point for the app."""
     app_logger.info("Loading layout")
     setup_debugpy(
@@ -51,8 +54,8 @@ def main():
         app_logger,
         flag=ATTACH_DEBUGGER,
         wait_for_client=WAIT_FOR_CLIENT,
-        host="localhost",
-        port=8765,
+        host=DEBUGPY_HOST,
+        port=DEFAULT_DEBUG_PORT,
     )
     render_layout(*load_env())
 
