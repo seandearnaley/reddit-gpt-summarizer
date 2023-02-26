@@ -80,6 +80,15 @@ def save_output(title: str, output: str) -> str:
     return output_file_path
 
 
+def replace_last_token_with_json(reddit_url: str) -> str:
+    """
+    Replace the last token in the Reddit URL with ".json".
+    """
+    tokens = reddit_url.rsplit("/", 1)
+    new_url = tokens[0] + "/.json"
+    return new_url
+
+
 def is_valid_reddit_url(url: str) -> bool:
     """
     Check if the URL is valid.
@@ -91,7 +100,7 @@ def is_valid_reddit_url(url: str) -> bool:
         r"reddit\.com\/"  # "reddit.com/"
         r"([a-zA-Z0-9-_]+\/)+"  # 1 or more letters, numbers, -'s, or _ followed by "/"
         r"[a-zA-Z0-9-_]+"  # 1 or more letters, numbers, -'s, or _'s
-        r"\.json$"  # ".json" at the end of the string
+        r"\/$"  # End of the string
     )
     return bool(pattern.match(url))
 

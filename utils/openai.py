@@ -45,7 +45,7 @@ def estimate_word_count(num_tokens: int) -> int:
     return estimated_word_count
 
 
-def complete_text(prompt: str, max_tokens: int) -> str:
+def complete_text(prompt: str, max_tokens: int, model: str = DEFAULT_GPT_MODEL) -> str:
     """
     Use OpenAI's GPT-3 model to complete text based on the given prompt.
 
@@ -62,7 +62,7 @@ def complete_text(prompt: str, max_tokens: int) -> str:
         raise ValueError("The input max_tokens must be a positive integer.")
 
     response: Dict[str, Any] = openai.Completion.create(  # type: ignore
-        model=DEFAULT_GPT_MODEL,
+        model=model,
         prompt=prompt,
         max_tokens=max_tokens,
     )

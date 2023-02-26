@@ -13,7 +13,7 @@ DEFAULT_MAX_TOKEN_LENGTH = 3000  # max number of tokens for GPT-3
 THREAD_ID = (
     "entertainment/comments/1193p9x/daft_punk_announce_new_random_access_memories"
 )
-REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}.json"  # URL of reddit thread
+REDDIT_URL = f"https://www.reddit.com/r/{THREAD_ID}/"  # URL of reddit thread
 SUBREDDIT = THREAD_ID.split("/", maxsplit=1)[0]
 TODAYS_DATE: str = datetime.now().strftime("%Y-%b-%d")
 LOG_NAME = "reddit_gpt_summarizer_log"

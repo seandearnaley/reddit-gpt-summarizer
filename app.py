@@ -26,6 +26,7 @@ from utils.common import (
     get_metadata_from_reddit_json,
     group_bodies_into_chunks,
     is_valid_reddit_url,
+    replace_last_token_with_json,
     request_json_from_url,
     save_output,
 )
@@ -61,12 +62,14 @@ def generate_prompts(
     return prompts
 
 
-def generate_summaries(prompts: List[str], max_token_length: int) -> List[str]:
+def generate_summaries(
+    prompts: List[str], max_token_length: int, model: str
+) -> List[str]:
     """Generate the summaries from the prompts."""
     summaries: List[str] = []
     for prompt in prompts:
         summary = complete_text(
-            prompt, max_token_length - num_tokens_from_string(prompt)
+            prompt, max_token_length - num_tokens_from_string(prompt), model
         )
         summaries.append(summary)
     return summaries
@@ -78,6 +81,7 @@ def generate_data(
     number_of_summaries: int,
     max_token_length: int,
     json_url: str,
+    model: str,
 ) -> Optional[Dict[str, str | List[str]]]:
     """
     Process the reddit thread JSON and generate a summary.
@@ -95,7 +99,7 @@ def generate_data(
     prompts = generate_prompts(
         title, selftext, groups[:number_of_summaries], query, SUBREDDIT
     )
-    summaries = generate_summaries(prompts, max_token_length)
+    summaries = generate_summaries(prompts, max_token_length, model)
 
     output = ""
     for i, summary in enumerate(summaries):
@@ -123,7 +127,7 @@ def render_layout() -> None:
 
     reddit_url = st.text_area("Enter REDDIT URL:", REDDIT_URL)
     if not is_valid_reddit_url(reddit_url):
-        st.error("Please enter a valid Reddit URL ending in '.json'.")
+        st.error("Please enter a valid Reddit URL")
         return
 
     with st.expander("Edit Settings"):
@@ -132,31 +136,30 @@ def render_layout() -> None:
         models = get_models()
         model_ids = [model["id"] for model in models]  # type: ignore
         model_ids_sorted = sorted(model_ids)
-        default_model_id = DEFAULT_GPT_MODEL  # Set the default model ID
-        default_model_index = model_ids_sorted.index(default_model_id)
+        default_model_index = model_ids_sorted.index(DEFAULT_GPT_MODEL)
         model = st.radio("Select Model", model_ids_sorted, default_model_index)
 
         if model:
             st.text(f"You selected model {model}. Here are the parameters:")
-            # st.text(models[model])
+            st.text(models[model_ids.index(model)])  # type: ignore
+        else:
+            st.text("Select a model")
+            st.stop()
 
-        chunk_token_length = int(
-            st.number_input(
-                "Chunk Token Length", value=DEFAULT_CHUNK_TOKEN_LENGTH, step=1
-            )
+        chunk_token_length = st.number_input(
+            "Chunk Token Length", value=DEFAULT_CHUNK_TOKEN_LENGTH, step=1
         )
 
-        number_of_summaries = int(
-            st.number_input(
-                "Number of Summaries",
-                value=DEFAULT_NUMBER_OF_SUMMARIES,
-                min_value=1,
-                max_value=10,
-                step=1,
-            )
+        number_of_summaries = st.number_input(
+            "Number of Summaries",
+            value=DEFAULT_NUMBER_OF_SUMMARIES,
+            min_value=1,
+            max_value=10,
+            step=1,
         )
-        max_token_length = int(
-            st.number_input("Max Token Length", value=DEFAULT_MAX_TOKEN_LENGTH, step=1)
+
+        max_token_length = st.number_input(
+            "Max Token Length", value=DEFAULT_MAX_TOKEN_LENGTH, step=1
         )
 
     btn = st.button("Generate it!")
@@ -169,10 +172,11 @@ def render_layout() -> None:
             with st.spinner("Wait for it..."):
                 result = generate_data(
                     query_text,
-                    chunk_token_length,
-                    number_of_summaries,
-                    max_token_length,
-                    reddit_url,
+                    int(chunk_token_length),
+                    int(number_of_summaries),
+                    int(max_token_length),
+                    replace_last_token_with_json(reddit_url),
+                    model,
                 )
 
                 if result is None:
