@@ -3,7 +3,7 @@
 from datetime import datetime
 
 # Constants
-
+DEFAULT_GPT_MODEL = "text-davinci-003"
 ATTACH_DEBUGGER = False
 WAIT_FOR_CLIENT = False
 DEFAULT_DEBUG_PORT = 8765

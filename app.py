@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 from config import (
     ATTACH_DEBUGGER,
     DEFAULT_CHUNK_TOKEN_LENGTH,
+    DEFAULT_GPT_MODEL,
     DEFAULT_INSTRUCTION_TEXT,
     DEFAULT_MAX_TOKEN_LENGTH,
     DEFAULT_NUMBER_OF_SUMMARIES,
@@ -19,7 +20,6 @@ from config import (
 )
 from debug_tools import setup_debugpy
 from logger import app_logger
-from presets import presets
 from streamlit_setup import st
 from utils.common import (
     get_comment_bodies,
@@ -29,7 +29,12 @@ from utils.common import (
     request_json_from_url,
     save_output,
 )
-from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
+from utils.openai import (
+    complete_text,
+    estimate_word_count,
+    get_models,
+    num_tokens_from_string,
+)
 
 setup_debugpy(
     st,
@@ -41,7 +46,6 @@ setup_debugpy(
 )
 
 
-# @log_with_logging()
 def generate_prompts(
     title: str, selftext: str, groups: List[str], query: str, subreddit: str
 ) -> List[str]:
@@ -126,11 +130,17 @@ def render_layout() -> None:
         query_text: str = st.text_area(
             "Instructions", DEFAULT_INSTRUCTION_TEXT, height=250
         )
-        model = st.radio("Select Model", list(presets.keys()))
+
+        models = get_models()
+        model_ids = [model["id"] for model in models]  # type: ignore
+        model_ids_sorted = sorted(model_ids)
+        default_model_id = DEFAULT_GPT_MODEL  # Set the default model ID
+        default_model_index = model_ids_sorted.index(default_model_id)
+        model = st.radio("Select Model", model_ids_sorted, default_model_index)
 
         if model:
             st.text(f"You selected model {model}. Here are the parameters:")
-            st.text(presets[model])
+            # st.text(models[model])
 
         chunk_token_length = int(
             st.number_input(

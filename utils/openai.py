@@ -84,3 +84,9 @@ def summarize_body(body: str, max_length: int = MAX_BODY_TOKEN_SIZE) -> str:
     summary_string = f"summarize this text to under {max_length} GPT-2 tokens:\n" + body
 
     return complete_text(summary_string, num_tokens_from_string(summary_string))
+
+
+def get_models() -> Dict[str, Any]:
+    """Get a list of all available GPT-3 models."""
+    response: Dict[str, Any] = openai.Engine.list()  # type: ignore
+    return response["data"]
