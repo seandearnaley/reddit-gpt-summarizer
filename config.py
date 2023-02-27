@@ -42,3 +42,14 @@ DEFAULT_QUERY_TEXT = (
     "that is appropriate for the situation. Format the document using markdown and "
     "include links from the original article/reddit thread."
 )
+HELP_TEXT = """
+    #### Help
+    Enter the instructions for the model to follow.
+    It will generate a summary of the Reddit thread.
+    The trick here is to experiment with token lengths and number
+    of summaries. The more summaries you generate, the more likely
+    you are to get a good summary.
+    The more tokens you use, the more likely you are to get a good summary.
+    The more tokens you use, the longer it will take to generate
+    the summary. The more summaries you generate, the more it will cost you.
+    """

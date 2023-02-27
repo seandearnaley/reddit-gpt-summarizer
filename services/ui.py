@@ -6,6 +6,8 @@ UI functions
 
 from typing import Any, Dict, Optional, Tuple
 
+import streamlit as st
+
 from config import (
     APP_TITLE,
     DEFAULT_CHUNK_TOKEN_LENGTH,
@@ -13,10 +15,10 @@ from config import (
     DEFAULT_MAX_TOKEN_LENGTH,
     DEFAULT_NUMBER_OF_SUMMARIES,
     DEFAULT_QUERY_TEXT,
+    HELP_TEXT,
     REDDIT_URL,
 )
 from services.data import generate_summary_data
-from streamlit_setup import st
 from utils.common import is_valid_reddit_url, replace_last_token_with_json, save_output
 from utils.openai import get_models, num_tokens_from_string
 
@@ -43,13 +45,12 @@ def render_settings(org_id: str, api_key: str) -> Tuple[str, Dict[str, Any]]:
         with col1:
             models = get_models(org_id, api_key)
             model_ids = [model["id"] for model in models]  # type: ignore
+            # note: models get updated, so we need to filter them
             filtered_list = [
                 item
                 for item in model_ids
-                if "text-davinci" in item
-                or "text-curie" in item  # todo add more models
+                if "text-davinci" in item or "text-curie" in item
             ]
-            print("filtered_list", filtered_list)
             model_ids_sorted = sorted(filtered_list)
             default_model_index = model_ids_sorted.index(DEFAULT_GPT_MODEL)
             selected_model = st.radio(
@@ -81,19 +82,7 @@ def render_settings(org_id: str, api_key: str) -> Tuple[str, Dict[str, Any]]:
                 "Max Token Length", value=DEFAULT_MAX_TOKEN_LENGTH, step=1
             )
         with col2:
-            st.markdown(
-                """
-                #### Help
-                Enter the instructions for the model to follow.
-                It will generate a summary of the Reddit thread.
-                The trick here is to experiment with token lengths and number
-                of summaries. The more summaries you generate, the more likely
-                you are to get a good summary.
-                The more tokens you use, the more likely you are to get a good summary.
-                The more tokens you use, the longer it will take to generate
-                the summary. The more summaries you generate, the more it will cost you.
-                """
-            )
+            st.markdown(HELP_TEXT)
 
     return selected_model, {
         "query_text": query_text,
@@ -165,24 +154,29 @@ def render_layout(
         with summary_placeholder.container():
             with st.spinner("Wait for it..."):
                 app_logger.info("Generating summary data")
-                result = generate_summary_data(
-                    settings["query_text"],
-                    settings["chunk_token_length"],
-                    settings["number_of_summaries"],
-                    settings["max_token_length"],
-                    replace_last_token_with_json(reddit_url),
-                    selected_model,
-                    org_id,
-                    api_key,
-                    app_logger,
-                )
 
-                if result is None:
-                    st.error("No Summary Data")
-                    st.stop()
+                try:
+                    result = generate_summary_data(
+                        settings["query_text"],
+                        settings["chunk_token_length"],
+                        settings["number_of_summaries"],
+                        settings["max_token_length"],
+                        replace_last_token_with_json(reddit_url),
+                        selected_model,
+                        org_id,
+                        api_key,
+                        app_logger,
+                    )
 
-                render_summary(result)
-                app_logger.info("Summary data generated")
+                    if result is None:
+                        st.error("No Summary Data")
+                        st.stop()
+
+                    render_summary(result)
+                    app_logger.info("Summary data generated")
+                except Exception as exception:  # pylint: disable=broad-except
+                    st.error(f"Error generating summary data {exception}")
+
             st.success("Done!")
 
         if st.button("Clear"):

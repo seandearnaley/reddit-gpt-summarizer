@@ -6,7 +6,6 @@ from typing import Dict, List, Optional
 
 from config import MAX_BODY_TOKEN_SIZE, SUBREDDIT
 from log_tools import log
-from streamlit_setup import st
 from utils.common import (
     get_comment_bodies,
     get_metadata_from_reddit_json,
@@ -94,8 +93,8 @@ def generate_summary_data(
     """
     reddit_json = request_json_from_url(json_url, logger)
     if not reddit_json:
-        st.error("Invalid URL. Please enter a valid Reddit URL and try again.")
-        return None
+        # raise JSON not found exception
+        raise ValueError("No JSON returned from URL")
 
     title, selftext = get_metadata_from_reddit_json(reddit_json)
     contents = list(get_comment_bodies(reddit_json, []))
