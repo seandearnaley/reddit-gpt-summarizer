@@ -1,8 +1,8 @@
 """Utility functions for the Reddit Scraper project."""
 import json
+import logging
 import os
 import re
-import sys
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Tuple, Union
 
@@ -25,25 +25,24 @@ def generate_filename(title: str) -> str:
     return filename
 
 
-def request_json_from_url(url: str) -> list[dict[str, Any]]:
+def request_json_from_url(
+    url: str, logger: logging.Logger = logging.getLogger(__name__)
+) -> List[Dict[str, Any]] | None:
     """
     Make a request to the given URL and return the JSON response.
     """
-    json_data = {}
     try:
         with requests.get(url, headers=HEADERS, timeout=10) as response:
             response.raise_for_status()
             try:
-                json_data = response.json()
+                return response.json()
             except json.decoder.JSONDecodeError as err:
-                print(f"There was an error decoding the JSON response: {err}")
+                logger.info("There was an error decoding the JSON response: %s", err)
 
-                sys.exit(1)
     except requests.exceptions.RequestException as err:
-        print(f"There was an error making the request: {err}")
-        sys.exit(1)
+        logger.info("There was an error making the request: %s", err)
 
-    return json_data
+    return None
 
 
 def get_timestamp() -> str:

@@ -1,9 +1,11 @@
 """data functions for Reddit Scraper project."""
 
 
+import logging
 from typing import Dict, List, Optional
 
 from config import MAX_BODY_TOKEN_SIZE, SUBREDDIT
+from log_tools import log
 from streamlit_setup import st
 from utils.common import (
     get_comment_bodies,
@@ -14,6 +16,7 @@ from utils.common import (
 from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
 
 
+@log
 def generate_prompts(
     title: str, selftext: str, groups: List[str], query: str, subreddit: str
 ) -> List[str]:
@@ -29,6 +32,7 @@ def generate_prompts(
     return prompts
 
 
+@log
 def summarize_body(
     body: str,
     org_id: str,
@@ -51,6 +55,7 @@ def summarize_body(
     )
 
 
+@log
 def generate_completions(
     prompts: List[str],
     max_token_length: int,
@@ -72,6 +77,7 @@ def generate_completions(
     return summaries
 
 
+@log
 def generate_summary_data(
     query: str,
     chunk_token_length: int,
@@ -81,11 +87,12 @@ def generate_summary_data(
     selected_model: str,
     org_id: str,
     api_key: str,
+    logger: logging.Logger,
 ) -> Optional[Dict[str, str | List[str]]]:
     """
     Process the reddit thread JSON and generate a summary.
     """
-    reddit_json = request_json_from_url(json_url)
+    reddit_json = request_json_from_url(json_url, logger)
     if not reddit_json:
         st.error("Invalid URL. Please enter a valid Reddit URL and try again.")
         return None
@@ -95,9 +102,12 @@ def generate_summary_data(
     groups = group_bodies_into_chunks(contents, chunk_token_length)
     groups.insert(0, groups[0])  # insert twice to get same comments in 2 top summaries
 
+    logger.info("Generating Prompts")
     prompts = generate_prompts(
         title, selftext, groups[:number_of_summaries], query, SUBREDDIT
     )
+
+    logger.info("Generating Completions")
     summaries = generate_completions(
         prompts, max_token_length, selected_model, org_id, api_key
     )

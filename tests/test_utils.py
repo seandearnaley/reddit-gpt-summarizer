@@ -2,7 +2,7 @@
 import os
 import sys
 from json import JSONDecodeError
-from typing import Any, Dict, List
+from typing import Any, Dict
 from unittest import mock
 
 import requests
@@ -50,7 +50,7 @@ def test_request_json_from_url() -> None:
         mock_response.raise_for_status.return_value = None  # type: ignore
         mock_get.return_value.__enter__.return_value = mock_response
 
-        result: List[dict[str, Any]] = request_json_from_url(url)
+        result = request_json_from_url(url)
 
         mock_get.assert_called_once_with(url, headers=HEADERS, timeout=10)
         mock_response.raise_for_status.assert_called_once()  # type: ignore

@@ -60,6 +60,7 @@ def complete_text(
     if max_tokens <= 0:
         raise ValueError("The input max_tokens must be a positive integer.")
 
+    app_logger.info("GPT prompt=%s", prompt)  # debug
     response: Dict[str, Any] = openai.Completion.create(  # type: ignore
         model=model,
         prompt=prompt,

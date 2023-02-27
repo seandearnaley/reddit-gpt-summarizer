@@ -145,6 +145,7 @@ def render_layout(
                     selected_model,
                     org_id,
                     api_key,
+                    app_logger,
                 )
 
                 if result is None:

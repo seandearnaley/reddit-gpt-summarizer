@@ -5,6 +5,7 @@ a summary of the reddit thread.
 # Import necessary modules
 
 
+import logging
 import os
 from typing import Tuple
 
@@ -12,18 +13,17 @@ from dotenv import load_dotenv
 
 from config import ATTACH_DEBUGGER, DEBUGPY_HOST, DEFAULT_DEBUG_PORT, WAIT_FOR_CLIENT
 from debug_tools import setup_debugpy
-from log_tools import AppLogger, app_logger, log
+from log_tools import app_logger, log
 from services.ui import render_layout
-from streamlit_setup import st, write_to_streamlit
+from streamlit_setup import st
 
 
-@write_to_streamlit
-def load_env() -> Tuple[str, str, AppLogger]:
+def load_env() -> Tuple[str, str, logging.Logger]:
     """
     Load the environment variables from the .env file.
 
     Returns:
-        tuple: A tuple of organization ID and API key.
+        tuple: A tuple of organization ID and API key + logging instance.
     """
     try:
         load_dotenv()
