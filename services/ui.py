@@ -7,6 +7,7 @@ UI functions
 from typing import Any, Dict, Optional, Tuple
 
 from config import (
+    APP_TITLE,
     DEFAULT_CHUNK_TOKEN_LENGTH,
     DEFAULT_GPT_MODEL,
     DEFAULT_MAX_TOKEN_LENGTH,
@@ -38,34 +39,61 @@ def render_settings(org_id: str, api_key: str) -> Tuple[str, Dict[str, Any]]:
     with st.expander("Edit Settings"):
         query_text: str = st.text_area("Instructions", DEFAULT_QUERY_TEXT, height=250)
 
-        models = get_models(org_id, api_key)
-        model_ids = [model["id"] for model in models]  # type: ignore
-        model_ids_sorted = sorted(model_ids)
-        default_model_index = model_ids_sorted.index(DEFAULT_GPT_MODEL)
-        selected_model = st.radio("Select Model", model_ids_sorted, default_model_index)
+        col1, col2 = st.columns(2)
+        with col1:
+            models = get_models(org_id, api_key)
+            model_ids = [model["id"] for model in models]  # type: ignore
+            filtered_list = [
+                item
+                for item in model_ids
+                if "text-davinci" in item
+                or "text-curie" in item  # todo add more models
+            ]
+            print("filtered_list", filtered_list)
+            model_ids_sorted = sorted(filtered_list)
+            default_model_index = model_ids_sorted.index(DEFAULT_GPT_MODEL)
+            selected_model = st.radio(
+                "Select Model", model_ids_sorted, default_model_index
+            )
 
-        if selected_model:
-            st.text(f"You selected model {selected_model}. Here are the parameters:")
-            st.text(models[model_ids.index(selected_model)])  # type: ignore
-        else:
-            st.text("Select a model")
-            st.stop()
+            if selected_model:
+                st.markdown(
+                    f"You selected model {selected_model}. Here are the parameters:"
+                )
+                st.text(models[model_ids.index(selected_model)])  # type: ignore
+            else:
+                st.text("Select a model")
+                st.stop()
 
-        chunk_token_length = st.number_input(
-            "Chunk Token Length", value=DEFAULT_CHUNK_TOKEN_LENGTH, step=1
-        )
+            chunk_token_length = st.number_input(
+                "Chunk Token Length", value=DEFAULT_CHUNK_TOKEN_LENGTH, step=1
+            )
 
-        number_of_summaries = st.number_input(
-            "Number of Summaries",
-            value=DEFAULT_NUMBER_OF_SUMMARIES,
-            min_value=1,
-            max_value=10,
-            step=1,
-        )
+            number_of_summaries = st.number_input(
+                "Number of Summaries",
+                value=DEFAULT_NUMBER_OF_SUMMARIES,
+                min_value=1,
+                max_value=10,
+                step=1,
+            )
 
-        max_token_length = st.number_input(
-            "Max Token Length", value=DEFAULT_MAX_TOKEN_LENGTH, step=1
-        )
+            max_token_length = st.number_input(
+                "Max Token Length", value=DEFAULT_MAX_TOKEN_LENGTH, step=1
+            )
+        with col2:
+            st.markdown(
+                """
+                #### Help
+                Enter the instructions for the model to follow.
+                It will generate a summary of the Reddit thread.
+                The trick here is to experiment with token lengths and number
+                of summaries. The more summaries you generate, the more likely
+                you are to get a good summary.
+                The more tokens you use, the more likely you are to get a good summary.
+                The more tokens you use, the longer it will take to generate
+                the summary. The more summaries you generate, the more it will cost you.
+                """
+            )
 
     return selected_model, {
         "query_text": query_text,
@@ -118,7 +146,8 @@ def render_layout(
     Render the layout of the app.
     """
 
-    st.header("Reddit Thread GPT Summarizer")
+    st.header(APP_TITLE)
+    st.subheader("by sean dearnaley")
 
     # Create an input box for url
     if reddit_url is None:
