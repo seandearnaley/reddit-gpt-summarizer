@@ -5,7 +5,6 @@ a summary of the reddit thread.
 # Import necessary modules
 
 
-import logging
 import os
 from typing import Any, Dict, Tuple
 
@@ -19,12 +18,12 @@ from utils.ui import render_layout
 
 
 @log
-def load_env() -> Tuple[str, str, logging.Logger]:
+def load_env() -> Tuple[str, str]:
     """
     Load the environment variables from the .env file.
 
     Returns:
-        tuple: A tuple of organization ID and API key + logging instance.
+        tuple: A tuple of organization ID and API key
     """
     try:
         load_dotenv()
@@ -43,7 +42,7 @@ def load_env() -> Tuple[str, str, logging.Logger]:
         st.error(err_msg)
         st.stop()
 
-    return org_id, api_key, app_logger
+    return org_id, api_key
 
 
 def main(config: Dict[str, Any]) -> None:
@@ -60,7 +59,7 @@ def main(config: Dict[str, Any]) -> None:
 
     # Set page configuration, must be done before rendering layout
     st.set_page_config(page_title=config["APP_TITLE"], page_icon="🤖", layout="wide")
-    render_layout(*load_env())
+    render_layout(*load_env(), app_logger=app_logger)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,31 @@ OPENAI_ORG_ID=<your_org_id>
 OPENAI_API_KEY=<your_api_key>
 ```
 
+## Development
+To install development dependencies, run:
+
+```
+poetry install --extras dev
+```
+
+This project uses pytest for testing and mypy for type checking.
+
+To run tests and type checking, use the following commands:
+
+```
+poetry run pytest
+poetry run mypy .
+```
+
+This project also uses black for code formatting and pylint for linting.
+
+To format code and check for linting errors, use the following commands:
+
+```
+poetry run black .
+poetry run pylint .
+```
+
 ## Usage
 
 To run the app, use the following command:

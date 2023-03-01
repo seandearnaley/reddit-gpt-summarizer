@@ -41,11 +41,11 @@ def render_settings(org_id: str, api_key: str) -> Tuple[str, Dict[str, Any]]:
     with col1:
         models = get_models(org_id, api_key)
         model_ids = [model["id"] for model in models]  # type: ignore
-        # note: models get updated, so we need to filter them
-        filtered_list = [
-            item for item in model_ids if "text-davinci" in item or "text-curie" in item
-        ]
-        model_ids_sorted = sorted(filtered_list)
+        # # note: models get updated, so we need to filter them
+        # filtered_list = [
+        #     item for item in model_ids if "text-davinci" in item or "text-curie" in item
+        # ]
+        model_ids_sorted = sorted(model_ids)
         default_model_index = model_ids_sorted.index(config["DEFAULT_GPT_MODEL"])
         selected_model = st.radio(
             label="Select Model",
