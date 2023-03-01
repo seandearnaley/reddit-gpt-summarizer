@@ -12,7 +12,12 @@ from utils.common import (
     group_bodies_into_chunks,
     request_json_from_url,
 )
-from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
+from utils.openai import (
+    complete_text,
+    complete_text_chat,
+    estimate_word_count,
+    num_tokens_from_string,
+)
 
 config = get_config()
 
@@ -38,7 +43,7 @@ def generate_prompts(
         prompt = (
             f"{query}\n\n```Title: "
             f"{title}\n{selftext[: estimate_word_count(500)]}\n\nr/{subreddit} on "
-            f"REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n```\nTitle: "
+            f"REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n```"
         )
         prompts.append(prompt)
     return prompts
@@ -78,7 +83,7 @@ def generate_completions(
     """Generate the summaries from the prompts."""
     summaries: List[str] = []
     for prompt in prompts:
-        summary = complete_text(
+        summary = complete_text_chat(
             prompt,
             max_token_length - num_tokens_from_string(prompt),
             org_id,

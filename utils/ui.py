@@ -41,11 +41,10 @@ def render_settings(org_id: str, api_key: str) -> Tuple[str, Dict[str, Any]]:
     with col1:
         models = get_models(org_id, api_key)
         model_ids = [model["id"] for model in models]  # type: ignore
-        # # note: models get updated, so we need to filter them
-        # filtered_list = [
-        #     item for item in model_ids if "text-davinci" in item or "text-curie" in item
-        # ]
-        model_ids_sorted = sorted(model_ids)
+        # note: models get updated, so we need to filter them
+        # todo: finish choice between instruct and chat
+        filtered_list = ["gpt-3.5-turbo", "gpt-3.5-turbo-0301"]
+        model_ids_sorted = sorted(filtered_list)
         default_model_index = model_ids_sorted.index(config["DEFAULT_GPT_MODEL"])
         selected_model = st.radio(
             label="Select Model",
@@ -109,7 +108,7 @@ def render_summary(result: Dict[str, Any]) -> None:
     st.subheader("Generated")
     for i, summary in enumerate(result["summaries"]):
         with st.expander(f"Prompt {i}"):
-            st.code(result["prompts"][i])
+            st.markdown(result["prompts"][i])
         st.subheader(f"OpenAI Completion Response: {i}")
         st.markdown(summary)
 

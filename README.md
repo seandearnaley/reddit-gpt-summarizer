@@ -1,5 +1,6 @@
 # Reddit GPT Summarizer
-## warning potentially expensive, be careful
+
+## 3/1/2023: added support for official ChatGPT API and models
 
 
 This is a Python-based Reddit thread summarizer that uses GPT-3 to generate summaries of the thread's comments.
