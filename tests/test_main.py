@@ -2,7 +2,7 @@
 import pytest
 
 from config import DEFAULT_CHUNK_TOKEN_LENGTH
-from services.data import (
+from utils.data import (
     get_comment_bodies,
     get_metadata_from_reddit_json,
     group_bodies_into_chunks,

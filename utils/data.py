@@ -2,9 +2,9 @@
 
 
 import logging
-from typing import Dict, List, Optional
+from typing import List, Optional, TypedDict
 
-from config import MAX_BODY_TOKEN_SIZE, SUBREDDIT
+from config import get_config
 from log_tools import log
 from utils.common import (
     get_comment_bodies,
@@ -13,6 +13,19 @@ from utils.common import (
     request_json_from_url,
 )
 from utils.openai import complete_text, estimate_word_count, num_tokens_from_string
+
+config = get_config()
+
+
+class SummaryData(TypedDict):
+    """Summary data for the OpenAI API."""
+
+    title: str
+    selftext: str
+    output: str
+    prompts: List[str]
+    summaries: List[str]
+    groups: List[str]
 
 
 @log
@@ -36,7 +49,7 @@ def summarize_body(
     body: str,
     org_id: str,
     api_key: str,
-    max_length: int = MAX_BODY_TOKEN_SIZE,
+    max_length: int = config["MAX_BODY_TOKEN_SIZE"],
 ) -> str:
     """
     Summarizes a body of text to be at most max_length tokens long.
@@ -87,41 +100,48 @@ def generate_summary_data(
     org_id: str,
     api_key: str,
     logger: logging.Logger,
-) -> Optional[Dict[str, str | List[str]]]:
+    # request_json_func = request_json_from_url,
+    # complete_text_func=complete_text,
+) -> Optional[SummaryData]:
     """
     Process the reddit thread JSON and generate a summary.
     """
-    reddit_json = request_json_from_url(json_url, logger)
-    if not reddit_json:
-        # raise JSON not found exception
-        raise ValueError("No JSON returned from URL")
+    try:
+        reddit_json = request_json_from_url(json_url, logger)
+        if not reddit_json:
+            raise ValueError("No JSON returned from URL")
 
-    title, selftext = get_metadata_from_reddit_json(reddit_json)
-    contents = list(get_comment_bodies(reddit_json, []))
-    groups = group_bodies_into_chunks(contents, chunk_token_length)
-    groups.insert(0, groups[0])  # insert twice to get same comments in 2 top summaries
+        title, selftext = get_metadata_from_reddit_json(reddit_json)
+        contents = list(get_comment_bodies(reddit_json, []))
+        groups = group_bodies_into_chunks(contents, chunk_token_length)
+        groups.insert(
+            0, groups[0]
+        )  # insert twice to get same comments in 2 top summaries
 
-    logger.info("Generating Prompts")
-    prompts = generate_prompts(
-        title, selftext, groups[:number_of_summaries], query, SUBREDDIT
-    )
+        logger.info("Generating Prompts")
+        prompts = generate_prompts(
+            title, selftext, groups[:number_of_summaries], query, config["SUBREDDIT"]
+        )
 
-    logger.info("Generating Completions")
-    summaries = generate_completions(
-        prompts, max_token_length, selected_model, org_id, api_key
-    )
+        logger.info("Generating Completions")
+        summaries = generate_completions(
+            prompts, max_token_length, selected_model, org_id, api_key
+        )
 
-    output = ""
-    for i, summary in enumerate(summaries):
-        prompt = prompts[i]
-        output += f"============\nSUMMARY COUNT: {i}\n============\n"
-        output += f"PROMPT: {prompt}\n\n{summary}\n===========================\n\n"
+        output = ""
+        for i, summary in enumerate(summaries):
+            prompt = prompts[i]
+            output += f"============\nSUMMARY COUNT: {i}\n============\n"
+            output += f"PROMPT: {prompt}\n\n{summary}\n===========================\n\n"
 
-    return {
-        "title": title,
-        "selftext": selftext,
-        "output": output,
-        "prompts": prompts,
-        "summaries": summaries,
-        "groups": groups,
-    }
+        return {
+            "title": title,
+            "selftext": selftext,
+            "output": output,
+            "prompts": prompts,
+            "summaries": summaries,
+            "groups": groups,
+        }
+    except Exception as ex:  # pylint: disable=broad-except
+        logger.error(f"Error generating summary data: {ex}")
+        return None

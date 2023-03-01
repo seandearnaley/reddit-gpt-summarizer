@@ -6,11 +6,15 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Optional, TypeVar
 
-from config import LOG_COLORS, LOG_FILE_PATH, LOG_NAME
+from config import get_config
 
 F = TypeVar("F", bound=Callable[..., Any])
 
 AppLogger = logging.Logger
+
+config = get_config()
+
+LOG_NAME = config["LOG_NAME"]
 
 # Define the logging configuration as a dictionary
 LOGGING_CONFIG = {
@@ -20,14 +24,14 @@ LOGGING_CONFIG = {
         "color": {
             "()": "colorlog.ColoredFormatter",
             "format": "%(log_color)s%(levelname)s:%(message)s",
-            "log_colors": LOG_COLORS,
+            "log_colors": config["LOG_COLORS"],
         }
     },
     "handlers": {
         "file": {
             "class": "logging.FileHandler",
             "formatter": "color",
-            "filename": os.path.abspath(LOG_FILE_PATH),
+            "filename": os.path.abspath(config["LOG_FILE_PATH"]),
         },
         "console": {
             "class": "logging.StreamHandler",

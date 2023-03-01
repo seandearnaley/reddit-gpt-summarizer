@@ -1,73 +1,66 @@
 # Reddit GPT Summarizer
-
 ## warning potentially expensive, be careful
 
-`poetry run python -m reddit_gpt_summarizer.main`
 
-A python project that uses OpenAI's GPT-3 model to generate a summary of a Reddit thread based on its comments. The project is built using poetry and makes use of various other tools like dotenv and tiktoken.
+This is a Python-based Reddit thread summarizer that uses GPT-3 to generate summaries of the thread's comments.
 
-This script is used to generate summaries of Reddit threads by using the OpenAI API to complete chunks of text based on a prompt with recursive summarization. It starts by making a request to a specified Reddit thread, extracting the title and self text, and then finding all of the comments in the thread. These comments are then concatenated into groups of a specified number of tokens, and a summary is generated for each group by prompting the OpenAI API with the group's text and the title and self text of the Reddit thread. The summaries are then saved to a file in an `outputs` folder in the current working directory.
+This script is used to generate summaries of Reddit threads by using the OpenAI API to complete chunks of text based on a prompt with recursive summarization. It starts by making a request to a specified Reddit thread, extracting the title and self text, and then finding all of the comments in the thread. 
 
-## Prerequisites
+These comments are then concatenated into groups of a specified number of tokens, and a summary is generated for each group by prompting the OpenAI API with the group's text and the title and self text of the Reddit thread. The summaries are then saved to a file in an `outputs` folder in the current working directory.
 
-- Python 3.8 or later
-- OpenAI API Key
-- Poetry
 
 ## Installation
 
-1. Clone the repository
+To install the dependencies, you can use `poetry`:
 
-`$ git clone https://github.com/<username>/reddit-gpt-summarizer.git`
-
-2. Change into the project directory
-
-`$ cd reddit-gpt-summarizer`
-
-3. Create a virtual environment
-
-`$ poetry shell`
-
-4. Install the dependencies
-
-`$ poetry install`
-
-5. Create a `.env` file in the project root directory and add the following environment variables:
-
+```sh
+poetry install
 ```
-OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
-OPENAI_ORG_ID=<YOUR_OPENAI_ORG_ID>
+
+You'll also need to provide OpenAI API credentials. Create a `.env` file and add the following:
+
+```makefile
+OPENAI_ORG_ID=<your_org_id>
+OPENAI_API_KEY=<your_api_key>
 ```
 
 ## Usage
 
-1. Run the `main.py` script
+To run the app, use the following command:
 
-`$ python reddit_gpt_summarizer/main.py`
+```sh
+streamlit run app.py
+```
 
-The script will take a Reddit URL and use OpenAI's GPT-3 model to generate a summary of the Reddit thread based on its comments. The summary will be displayed in the console and also saved to a file in the `outputs` folder.
+This will start a web app that allows you to enter a Reddit thread URL and generate a summary. The app will automatically generate prompts for GPT-3 based on the thread's contents and generate a summary based on those prompts.
 
-## Tests
+## Configuration
 
-The project contains tests for the `main.py` and `utils.py` scripts. To run the tests, use the following command:
+You can customize the behavior of the app using the `config.py` file. The following configuration options are available: 
+- `DEFAULT_GPT_MODEL`: The default GPT-3 model to use. 
+- `ATTACH_DEBUGGER`: Whether to attach a debugger to the app. 
+- `WAIT_FOR_CLIENT`: Whether to wait for a client to attach before starting the app. 
+- `DEFAULT_DEBUG_PORT`: The default port to use for the debugger. 
+- `DEBUGPY_HOST`: The host to use for the debugger. 
+- `DEFAULT_CHUNK_TOKEN_LENGTH`: The default length of a chunk of comments. 
+- `DEFAULT_NUMBER_OF_SUMMARIES`: The default number of summaries to generate. 
+- `DEFAULT_MAX_TOKEN_LENGTH`: The default maximum length of a summary. 
+- `LOG_FILE_PATH`: The path to the log file. 
+- `LOG_COLORS`: A dictionary of colors for the log. 
+- `THREAD_ID`: The ID of the thread to summarize. 
+- `REDDIT_URL`: The URL of the Reddit thread to summarize. 
+- `SUBREDDIT`: The subreddit of the thread to summarize. 
+- `TODAYS_DATE`: Today's date. 
+- `LOG_NAME`: The name of the log file. 
+- `APP_TITLE`: The title of the app. 
+- `MAX_BODY_TOKEN_SIZE`: The maximum number of tokens for a comment body. 
+- `DEFAULT_QUERY_TEXT`: The default text to use for the GPT-3 prompt. 
+- `HELP_TEXT`: The text to display when the user hovers over the help icon.
 
-`$ poetry run pytest`
+## Contributing
 
-## Output
+If you'd like to contribute to this project, please create a pull request.
 
-The output is saved as a text file in the `outputs` folder with the title of the Reddit thread and a timestamp in the filename.
+## License
 
-## Folder Structure
-
-- outputs: folder containing the generated summary files
-- reddit_gpt_summarizer: folder containing the main script and the utilities
-  - utils: folder containing utility functions
-  - main.py: script that uses OpenAI's GPT-3 model to generate a summary of a Reddit thread
-  - output.json: raw json output of the Reddit thread for debugging purposes
-- tests: folder containing test files
-- .env: file containing the environment variables for OpenAI's API key and organization ID
-- .gitignore: file specifying files to be ignored by Git
-- README.md: file containing documentation for the project
-- poetry.lock: file containing poetry's project dependencies and version information
-- pyproject.toml: file containing project metadata and dependencies
-- requirements.txt: file containing the project's dependencies in pip format
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT) .
