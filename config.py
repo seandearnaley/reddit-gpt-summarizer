@@ -36,7 +36,7 @@ DEFAULT_QUERY_TEXT: str = (
     "Avoid technical language, present facts objectively, and summarize key "
     "comments from Reddit. Ensure that the overall sentiment expressed in the comments "
     "is accurately reflected. Optimize for highly original content. "
-    "Don't be trolled joke comments. "
+    "Don't be trolled by joke comments. "
     "Ensure its written professionally, in a way "
     "that is appropriate for the situation. Format the document using markdown and "
     "include links from the original article/reddit thread."
