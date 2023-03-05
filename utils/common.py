@@ -27,7 +27,7 @@ def generate_filename(title: str) -> str:
 
 def request_json_from_url(
     url: str, logger: logging.Logger = logging.getLogger(__name__)
-) -> List[Dict[str, Any]] | None:
+) -> List[Dict[str, Any]]:
     """
     Make a request to the given URL and return the JSON response.
     """
@@ -38,11 +38,11 @@ def request_json_from_url(
                 return response.json()
             except json.decoder.JSONDecodeError as err:
                 logger.info("There was an error decoding the JSON response: %s", err)
+                raise err
 
     except requests.exceptions.RequestException as err:
         logger.info("There was an error making the request: %s", err)
-
-    return None
+        raise err
 
 
 def get_timestamp() -> str:
