@@ -57,8 +57,6 @@ def main(config: Dict[str, Any]) -> None:
         port=config["DEFAULT_DEBUG_PORT"],
     )
 
-    # Set page configuration, must be done before rendering layout
-    st.set_page_config(page_title=config["APP_TITLE"], page_icon="🤖", layout="wide")
     render_layout(*load_env(), app_logger=app_logger)
 
 

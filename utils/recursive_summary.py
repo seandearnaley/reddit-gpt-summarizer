@@ -45,7 +45,7 @@ rate_limits = (RequestRate(10, Duration.MINUTE),)  # 10 requests a minute
 limiter = Limiter(*rate_limits)
 
 
-def load_text_file(filename: str):
+def load_text_file(filename: str) -> str:
     """
     Load a text file from the same directory as this script.
     """
@@ -56,7 +56,7 @@ def load_text_file(filename: str):
     return file_read_data
 
 
-def write_text_file(text: str, filename: str):
+def write_text_file(text: str, filename: str) -> str:
     """
     Write a text file from the same directory as this script.
     """

@@ -75,7 +75,6 @@ You can customize the behavior of the app using the `config.py` file. The follow
 - `LOG_COLORS`: A dictionary of colors for the log. 
 - `THREAD_ID`: The ID of the thread to summarize. 
 - `REDDIT_URL`: The URL of the Reddit thread to summarize. 
-- `SUBREDDIT`: The subreddit of the thread to summarize. 
 - `TODAYS_DATE`: Today's date. 
 - `LOG_NAME`: The name of the log file. 
 - `APP_TITLE`: The title of the app. 

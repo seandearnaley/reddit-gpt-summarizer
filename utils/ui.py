@@ -4,11 +4,12 @@ UI functions
 # Import necessary modules
 
 
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import streamlit as st
 
 from config import get_config
+from data_types.typedicts import GenerateSettings
 from utils.common import is_valid_reddit_url, replace_last_token_with_json, save_output
 from utils.data import generate_summary_data
 from utils.openai import get_models, num_tokens_from_string
@@ -29,7 +30,7 @@ def render_input_box() -> Optional[str]:
 
 
 @expander_decorator("Edit Settings")
-def render_settings(org_id: str, api_key: str) -> Tuple[str, Dict[str, Any]]:
+def render_settings(org_id: str, api_key: str) -> GenerateSettings:
     """
     Render the settings for the app and return the model and settings.
     """
@@ -53,9 +54,7 @@ def render_settings(org_id: str, api_key: str) -> Tuple[str, Dict[str, Any]]:
         )
 
         if selected_model:
-            st.markdown(
-                f"You selected model {selected_model}. Here are the parameters:"
-            )
+            st.text(f"You selected model {selected_model}. Here are the parameters:")
             st.text(models[model_ids.index(selected_model)])  # type: ignore
         else:
             st.text("Select a model")
@@ -83,11 +82,12 @@ def render_settings(org_id: str, api_key: str) -> Tuple[str, Dict[str, Any]]:
     with col2:
         st.markdown(config["HELP_TEXT"])
 
-    return selected_model, {
-        "query_text": query_text,
-        "chunk_token_length": chunk_token_length,
-        "number_of_summaries": number_of_summaries,
-        "max_token_length": max_token_length,
+    return {
+        "query": query_text,
+        "chunk_token_length": int(chunk_token_length),
+        "number_of_summaries": int(number_of_summaries),
+        "max_token_length": int(max_token_length),
+        "selected_model": selected_model,
     }
 
 
@@ -117,13 +117,14 @@ def render_layout(
     api_key: str,
     app_logger: Any = None,
     reddit_url: Optional[str] = None,
-    selected_model: Optional[str] = None,
-    settings: Optional[Dict[str, Any]] = None,
+    settings: Optional[GenerateSettings] = None,
 ) -> None:
     """
     Render the layout of the app.
     """
 
+    # Set page configuration, must be done before rendering layout
+    st.set_page_config(page_title=config["APP_TITLE"], page_icon="🤖", layout="wide")
     st.header(config["APP_TITLE"])
 
     # Create an input box for url
@@ -132,10 +133,11 @@ def render_layout(
         if reddit_url is None:
             st.stop()
 
-    if settings is None or selected_model is None:
-        selected_model, settings = render_settings(org_id, api_key)
+    if settings is None:
+        settings = render_settings(org_id, api_key)
 
     if settings is None:
+        st.error("No settings (not sure how this happened)")
         st.stop()
 
     # Create a button to submit the url
@@ -147,16 +149,11 @@ def render_layout(
 
             try:
                 result = generate_summary_data(
-                    settings["query_text"],
-                    settings["chunk_token_length"],
-                    settings["number_of_summaries"],
-                    settings["max_token_length"],
-                    replace_last_token_with_json(reddit_url),
-                    selected_model,
-                    org_id,
-                    api_key,
-                    app_logger,
-                    subreddit=config["SUBREDDIT"],
+                    settings=settings,
+                    json_url=replace_last_token_with_json(reddit_url),
+                    org_id=org_id,
+                    api_key=api_key,
+                    logger=app_logger,
                 )
 
                 if result is None:

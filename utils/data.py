@@ -2,9 +2,10 @@
 
 
 import logging
-from typing import List, Optional, Tuple, TypedDict
+from typing import List, Optional, Tuple
 
 from config import get_config
+from data_types.typedicts import GenerateSettings, SummaryData
 from log_tools import log
 from utils.common import (
     get_comment_bodies,
@@ -16,17 +17,6 @@ from utils.openai import complete_text_chat, num_tokens_from_string
 from utils.streamlit_decorators import spinner_decorator
 
 config = get_config()
-
-
-class SummaryData(TypedDict):
-    """Summary data for the OpenAI API."""
-
-    title: str
-    selftext: str
-    output: str
-    prompts: List[str]
-    summaries: List[str]
-    groups: List[str]
 
 
 @log
@@ -53,10 +43,8 @@ def summarize_body(
 
 @log
 def generate_summaries(
-    query: str,
+    settings: GenerateSettings,
     groups: List[str],
-    max_token_length: int,
-    model: str,
     org_id: str,
     api_key: str,
     prompt: str,
@@ -67,7 +55,7 @@ def generate_summaries(
     summaries: List[str] = []
     for comment_group in groups:
         complete_prompt = (
-            f"{query}\n\n```"
+            f"{settings['query']}\n\n```"
             + f"Title: {summarize_summary(prompt, org_id, api_key)}\n\n"
             + f"\n\nr/{subreddit} on REDDIT\nCOMMENTS BEGIN\n{comment_group}\n"
             + "COMMENTS END\n```"
@@ -77,10 +65,11 @@ def generate_summaries(
 
         summary = complete_text_chat(
             prompt=complete_prompt,
-            max_tokens=max_token_length - num_tokens_from_string(complete_prompt),
+            max_tokens=settings["max_token_length"]
+            - num_tokens_from_string(complete_prompt),
             org_id=org_id,
             api_key=api_key,
-            model=model,
+            model=settings["selected_model"],
         )
         prompt = summary
 
@@ -103,48 +92,41 @@ def summarize_summary(
 @log
 @spinner_decorator("Generating Summary Data")
 def generate_summary_data(
-    query: str,
-    chunk_token_length: int,
-    number_of_summaries: int,
-    max_token_length: int,
+    settings: GenerateSettings,
     json_url: str,
-    selected_model: str,
     org_id: str,
     api_key: str,
     logger: logging.Logger,
-    subreddit: str,
-    # request_json_func = request_json_from_url,
-    # complete_text_func=complete_text,
+    # request_json_func = request_json_from_url, add inections
+    # complete_text_func=complete_text, add injections
 ) -> Optional[SummaryData]:
     """
     Process the reddit thread JSON and generate a summary.
     """
     try:
-        reddit_json = request_json_from_url(json_url, logger)
+        reddit_json = request_json_from_url(json_url)
+        subreddit = json_url.split("/", maxsplit=1)[0]
         if not reddit_json:
-            raise ValueError("No JSON returned from URL")
+            raise ValueError("No JSON")
 
         title, selftext = get_metadata_from_reddit_json(reddit_json)
         contents = list(get_comment_bodies(reddit_json, []))
-        groups = group_bodies_into_chunks(contents, chunk_token_length)
+        groups = group_bodies_into_chunks(contents, settings["chunk_token_length"])
         groups.insert(
             0, groups[0]
         )  # insert twice to get same comments in 2 top summaries
 
         logger.info("Generating Completions")
 
-        # start this will wrapped in new lines
         init_prompt = summarize_summary(selftext, org_id, api_key, title)
 
         prompts, summaries = generate_summaries(
-            query,
-            groups[:number_of_summaries],
-            max_token_length,
-            selected_model,
-            org_id,
-            api_key,
-            init_prompt,
-            subreddit,
+            settings=settings,
+            groups=groups[: settings["number_of_summaries"]],
+            org_id=org_id,
+            api_key=api_key,
+            prompt=init_prompt,
+            subreddit=subreddit,
         )
 
         output = ""

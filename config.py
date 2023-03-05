@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 # Constants
 DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
-ATTACH_DEBUGGER: bool = True
+ATTACH_DEBUGGER: bool = False
 WAIT_FOR_CLIENT: bool = False
 DEFAULT_DEBUG_PORT: int = 8765
 DEBUGPY_HOST: str = "localhost"
@@ -24,7 +24,6 @@ THREAD_ID: str = (
     "entertainment/comments/1193p9x/daft_punk_announce_new_random_access_memories"
 )
 REDDIT_URL: str = f"https://www.reddit.com/r/{THREAD_ID}/"  # URL of reddit thread
-SUBREDDIT: str = THREAD_ID.split("/", maxsplit=1)[0]
 TODAYS_DATE: str = datetime.now().strftime("%Y-%b-%d")
 LOG_NAME: str = "reddit_gpt_summarizer_log"
 APP_TITLE: str = "Reddit Thread GPT Summarizer"
@@ -36,10 +35,8 @@ DEFAULT_QUERY_TEXT: str = (
     "content is clear, engaging, and easy to understand for a general audience. "
     "Avoid technical language, present facts objectively, and summarize key "
     "comments from Reddit. Ensure that the overall sentiment expressed in the comments "
-    "is accurately reflected. Optimize for highly original content.  Use human-like "
-    "natural language, incorporate emotions, vary sentence length: Humans don't "
-    "always speak in complete sentences, use light humor to seem more human, however, "
-    "be careful not to overdo it. Ensure its written professionally, in a way "
+    "is accurately reflected. Optimize for highly original content.  "
+    "Ensure its written professionally, in a way "
     "that is appropriate for the situation. Format the document using markdown and "
     "include links from the original article/reddit thread."
 )
@@ -77,7 +74,6 @@ def get_config() -> Dict[str, Any]:
         "MAX_BODY_TOKEN_SIZE": MAX_BODY_TOKEN_SIZE,
         "DEFAULT_QUERY_TEXT": DEFAULT_QUERY_TEXT,
         "HELP_TEXT": HELP_TEXT,
-        "SUBREDDIT": SUBREDDIT,
     }
 
     # def getitem(key: str) -> Any:
@@ -107,7 +103,6 @@ class Config:
             "DEFAULT_DEBUG_PORT": DEFAULT_DEBUG_PORT,
             "DEBUGPY_HOST": DEBUGPY_HOST,
             "DEFAULT_CHUNK_TOKEN_LENGTH": DEFAULT_CHUNK_TOKEN_LENGTH,
-            "SUBREDDIT": SUBREDDIT,
         }
 
     def __getitem__(self, key: str) -> Any:
