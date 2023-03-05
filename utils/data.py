@@ -2,7 +2,7 @@
 
 
 import logging
-from typing import List, Optional, TypedDict
+from typing import List, Optional, Tuple, TypedDict
 
 from config import get_config
 from log_tools import log
@@ -12,12 +12,8 @@ from utils.common import (
     group_bodies_into_chunks,
     request_json_from_url,
 )
-from utils.openai import (
-    complete_text,
-    complete_text_chat,
-    estimate_word_count,
-    num_tokens_from_string,
-)
+from utils.openai import complete_text_chat, num_tokens_from_string
+from utils.streamlit_decorators import spinner_decorator
 
 config = get_config()
 
@@ -34,67 +30,78 @@ class SummaryData(TypedDict):
 
 
 @log
-def generate_prompts(
-    title: str, selftext: str, groups: List[str], query: str, subreddit: str
-) -> List[str]:
-    """Generate the prompts for the OpenAI API."""
-    prompts: List[str] = []
-    for comment_group in groups:
-        prompt = (
-            f"{query}\n\n```Title: "
-            f"{title}\n{selftext[: estimate_word_count(500)]}\n\nr/{subreddit} on "
-            f"REDDIT\nCOMMENTS BEGIN\n{comment_group}\nCOMMENTS END\n```"
-        )
-        prompts.append(prompt)
-    return prompts
-
-
-@log
 def summarize_body(
     body: str,
     org_id: str,
     api_key: str,
-    max_length: int = config["MAX_BODY_TOKEN_SIZE"],
+    max_tokens: int = config["MAX_BODY_TOKEN_SIZE"],
 ) -> str:
     """
     Summarizes a body of text to be at most max_length tokens long.
     """
-    if num_tokens_from_string(body) <= max_length:
-        return body
+    summary_string = (
+        f"summarize this text, don't go over {max_tokens} GPT-2 tokens:\n" + body
+    )
 
-    summary_string = f"summarize this text to under {max_length} GPT-2 tokens:\n" + body
-
-    return complete_text(
-        summary_string,
-        num_tokens_from_string(summary_string),
-        org_id,
-        api_key,
+    return complete_text_chat(
+        prompt=summary_string,
+        max_tokens=max_tokens,
+        org_id=org_id,
+        api_key=api_key,
     )
 
 
 @log
-def generate_completions(
-    prompts: List[str],
+def generate_summaries(
+    query: str,
+    groups: List[str],
     max_token_length: int,
     model: str,
     org_id: str,
     api_key: str,
-) -> List[str]:
+    prompt: str,
+    subreddit: str,
+) -> Tuple[List[str], List[str]]:
     """Generate the summaries from the prompts."""
+    prompts: List[str] = []
     summaries: List[str] = []
-    for prompt in prompts:
+    for comment_group in groups:
+        complete_prompt = (
+            f"{query}\n\n```"
+            + f"Title: {summarize_summary(prompt, org_id, api_key)}\n\n"
+            + f"\n\nr/{subreddit} on REDDIT\nCOMMENTS BEGIN\n{comment_group}\n"
+            + "COMMENTS END\n```"
+        )
+
+        prompts.append(complete_prompt)
+
         summary = complete_text_chat(
-            prompt,
-            max_token_length - num_tokens_from_string(prompt),
-            org_id,
-            api_key,
+            prompt=complete_prompt,
+            max_tokens=max_token_length - num_tokens_from_string(complete_prompt),
+            org_id=org_id,
+            api_key=api_key,
             model=model,
         )
+        prompt = summary
+
         summaries.append(summary)
-    return summaries
+    return prompts, summaries
+
+
+def summarize_summary(
+    selftext: str, org_id: str, api_key: str, title: Optional[str] = None
+) -> str:
+    """Summarize the response."""
+    # out_text = selftext[: estimate_word_count(500)]
+    out_text = summarize_body(selftext, org_id, api_key)
+    print(org_id, api_key)
+    if title is None:
+        return out_text
+    return f"{title}\n{out_text}"
 
 
 @log
+@spinner_decorator("Generating Summary Data")
 def generate_summary_data(
     query: str,
     chunk_token_length: int,
@@ -105,6 +112,7 @@ def generate_summary_data(
     org_id: str,
     api_key: str,
     logger: logging.Logger,
+    subreddit: str,
     # request_json_func = request_json_from_url,
     # complete_text_func=complete_text,
 ) -> Optional[SummaryData]:
@@ -123,14 +131,20 @@ def generate_summary_data(
             0, groups[0]
         )  # insert twice to get same comments in 2 top summaries
 
-        logger.info("Generating Prompts")
-        prompts = generate_prompts(
-            title, selftext, groups[:number_of_summaries], query, config["SUBREDDIT"]
-        )
-
         logger.info("Generating Completions")
-        summaries = generate_completions(
-            prompts, max_token_length, selected_model, org_id, api_key
+
+        # start this will wrapped in new lines
+        init_prompt = summarize_summary(selftext, org_id, api_key, title)
+
+        prompts, summaries = generate_summaries(
+            query,
+            groups[:number_of_summaries],
+            max_token_length,
+            selected_model,
+            org_id,
+            api_key,
+            init_prompt,
+            subreddit,
         )
 
         output = ""

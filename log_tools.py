@@ -65,6 +65,7 @@ def log(func: Any, logger: Optional[logging.Logger] = None) -> Any:
 
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
+        logging.info("Calling %s", func.__name__)
         result = func(*args, **kwargs)
         timestamp: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         logger.info("%s: %s returned %s", timestamp, func.__name__, result)

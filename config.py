@@ -5,12 +5,12 @@ from typing import Any, Dict
 
 # Constants
 DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
-ATTACH_DEBUGGER: bool = False
+ATTACH_DEBUGGER: bool = True
 WAIT_FOR_CLIENT: bool = False
 DEFAULT_DEBUG_PORT: int = 8765
 DEBUGPY_HOST: str = "localhost"
 DEFAULT_CHUNK_TOKEN_LENGTH: int = 2000
-DEFAULT_NUMBER_OF_SUMMARIES: int = 1  # reduce this to 1 for testing
+DEFAULT_NUMBER_OF_SUMMARIES: int = 3  # reduce this to 1 for testing
 DEFAULT_MAX_TOKEN_LENGTH: int = 4096  # max number of tokens for GPT-3
 LOG_FILE_PATH: str = "./logs/log.log"
 LOG_COLORS: Dict[str, str] = {
