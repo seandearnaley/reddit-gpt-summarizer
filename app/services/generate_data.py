@@ -5,15 +5,15 @@ import logging
 from typing import List, Optional, Tuple
 
 from config import get_config
-from data_types.typedicts import GenerateSettings, SummaryData
+from data_types.summary import GenerateSettings, SummaryData
 from log_tools import log
+from services.openai_methods import complete_text_chat, num_tokens_from_string
 from utils.common import (
     get_comment_bodies,
     get_metadata_from_reddit_json,
     group_bodies_into_chunks,
     request_json_from_url,
 )
-from utils.openai import complete_text_chat, num_tokens_from_string
 from utils.streamlit_decorators import spinner_decorator
 
 config = get_config()

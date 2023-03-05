@@ -7,12 +7,11 @@ UI functions
 from typing import Any, Dict, Optional
 
 import streamlit as st
-
 from config import get_config
-from data_types.typedicts import GenerateSettings
+from data_types.summary import GenerateSettings
+from services.generate_data import generate_summary_data
+from services.openai_methods import get_models, num_tokens_from_string
 from utils.common import is_valid_reddit_url, replace_last_token_with_json, save_output
-from utils.data import generate_summary_data
-from utils.openai import get_models, num_tokens_from_string
 from utils.streamlit_decorators import expander_decorator
 
 config = get_config()

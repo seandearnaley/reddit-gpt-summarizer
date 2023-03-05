@@ -34,28 +34,28 @@ def expander_decorator(
     Decorator to wrap a function with st.expander.
     """
 
-    def wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
-        def wrapped_func(*args: Any, **kwargs: Any) -> Any:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             with st.expander(title):
                 return func(*args, **kwargs)
 
-        return wrapped_func
+        return wrapper
 
-    return wrapper
+    return decorator
 
 
-def spinner_decorator(
-    title: str,
-) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def spinner_decorator(title: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
-    Decorator to wrap a function with st.expander.
+    Decorator to wrap a function with st.spinner.
     """
 
-    def wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
-        def wrapped_func(*args: Any, **kwargs: Any) -> Any:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             with st.spinner(title):
                 return func(*args, **kwargs)
 
-        return wrapped_func
+        return wrapper
 
-    return wrapper
+    return decorator

@@ -13,8 +13,7 @@ from typing import Any, Dict
 import openai
 from dotenv import load_dotenv
 from pyrate_limiter import Duration, Limiter, RequestRate
-
-from utils.openai import estimate_word_count, num_tokens_from_string
+from services.openai_methods import estimate_word_count, num_tokens_from_string
 
 # Constants
 SUMMARY_SIZE = 500

@@ -1,0 +1,9 @@
+[MASTER]
+
+# Define the python path to include the app directory.
+init-hook='import sys; sys.path.append("./app")'
+
+[MESSAGES CONTROL]
+
+# Ignore the import error caused by the top-level relative imports.
+# disable=E0402
