@@ -35,7 +35,8 @@ DEFAULT_QUERY_TEXT: str = (
     "content is clear, engaging, and easy to understand for a general audience. "
     "Avoid technical language, present facts objectively, and summarize key "
     "comments from Reddit. Ensure that the overall sentiment expressed in the comments "
-    "is accurately reflected. Optimize for highly original content.  "
+    "is accurately reflected. Optimize for highly original content. "
+    "Don't be trolled joke comments. "
     "Ensure its written professionally, in a way "
     "that is appropriate for the situation. Format the document using markdown and "
     "include links from the original article/reddit thread."
@@ -85,28 +86,3 @@ def get_config() -> Dict[str, Any]:
     # config.__getitem__ = getitem
 
     return config
-
-
-class Config:
-    """Configuration class for the Reddit Summarizer."""
-
-    def __init__(self) -> None:
-        self.config: Dict[str, Any] = {
-            "DEFAULT_GPT_MODEL": DEFAULT_GPT_MODEL,
-            "DEFAULT_NUMBER_OF_SUMMARIES": DEFAULT_NUMBER_OF_SUMMARIES,
-            "DEFAULT_MAX_TOKEN_LENGTH": DEFAULT_MAX_TOKEN_LENGTH,
-            "LOG_FILE_PATH": LOG_FILE_PATH,
-            "LOG_COLORS": LOG_COLORS,
-            "REDDIT_URL": REDDIT_URL,
-            "ATTACH_DEBUGGER": ATTACH_DEBUGGER,
-            "WAIT_FOR_CLIENT": WAIT_FOR_CLIENT,
-            "DEFAULT_DEBUG_PORT": DEFAULT_DEBUG_PORT,
-            "DEBUGPY_HOST": DEBUGPY_HOST,
-            "DEFAULT_CHUNK_TOKEN_LENGTH": DEFAULT_CHUNK_TOKEN_LENGTH,
-        }
-
-    def __getitem__(self, key: str) -> Any:
-        if key in self.config:
-            return self.config[key]
-
-        raise KeyError(f"{key} is not a valid configuration parameter")

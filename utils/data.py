@@ -114,7 +114,7 @@ def generate_summary_data(
         groups = group_bodies_into_chunks(contents, settings["chunk_token_length"])
         groups.insert(
             0, groups[0]
-        )  # insert twice to get same comments in 2 top summaries
+        )  # hacky insert twice to get same comments in 2 top summaries
 
         logger.info("Generating Completions")
 

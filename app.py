@@ -48,6 +48,10 @@ def load_env() -> Tuple[str, str]:
 def main(config: Dict[str, Any]) -> None:
     """Main entry point for the app."""
     app_logger.info("Loading layout")
+
+    # Set page configuration, must be done before rendering layout
+    st.set_page_config(page_title=config["APP_TITLE"], page_icon="🤖", layout="wide")
+
     setup_debugpy(
         st,
         app_logger,

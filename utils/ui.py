@@ -42,8 +42,6 @@ def render_settings(org_id: str, api_key: str) -> GenerateSettings:
     with col1:
         models = get_models(org_id, api_key)
         model_ids = [model["id"] for model in models]  # type: ignore
-        # note: models get updated, so we need to filter them
-        # todo: finish choice between instruct and chat
         filtered_list = ["gpt-3.5-turbo", "gpt-3.5-turbo-0301"]
         model_ids_sorted = sorted(filtered_list)
         default_model_index = model_ids_sorted.index(config["DEFAULT_GPT_MODEL"])
@@ -123,8 +121,6 @@ def render_layout(
     Render the layout of the app.
     """
 
-    # Set page configuration, must be done before rendering layout
-    st.set_page_config(page_title=config["APP_TITLE"], page_icon="🤖", layout="wide")
     st.header(config["APP_TITLE"])
 
     # Create an input box for url
