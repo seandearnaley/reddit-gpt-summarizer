@@ -27,4 +27,8 @@ pylint = "^2.16.2"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.pyright]
+[tool.pylint]
+init-hook='import sys; sys.path.append("./app")'
+disable = [
+    "E0402"
+]

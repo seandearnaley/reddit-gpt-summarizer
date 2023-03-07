@@ -63,8 +63,8 @@ def render_settings(org_id: str, api_key: str) -> GenerateSettings:
             step=1,
         )
 
-        number_of_summaries = st.number_input(
-            label="Number of Summaries",
+        max_number_of_summaries = st.number_input(
+            label="Max Number of Summaries",
             value=config["DEFAULT_NUMBER_OF_SUMMARIES"],
             min_value=1,
             max_value=10,
@@ -82,7 +82,7 @@ def render_settings(org_id: str, api_key: str) -> GenerateSettings:
     return {
         "query": query_text,
         "chunk_token_length": int(chunk_token_length),
-        "number_of_summaries": int(number_of_summaries),
+        "max_number_of_summaries": int(max_number_of_summaries),
         "max_token_length": int(max_token_length),
         "selected_model": selected_model,
     }
@@ -105,7 +105,7 @@ def render_summary(result: Dict[str, Any]) -> None:
     for i, summary in enumerate(result["summaries"]):
         with st.expander(f"Prompt {i}"):
             st.text(result["prompts"][i])
-        st.subheader(f"OpenAI Completion Response: {i}")
+        st.subheader(f"ChatGPT Response: {i}")
         st.markdown(summary)
 
 
@@ -142,6 +142,12 @@ def render_layout(
         with summary_placeholder.container():
             app_logger.info("Generating summary data")
 
+            progress_text = "Operation in progress. Please wait."
+            my_bar = st.progress(0, text=progress_text)
+
+            def progress_callback(progress: int) -> None:
+                my_bar.progress(progress, text=progress_text)
+
             try:
                 result = generate_summary_data(
                     settings=settings,
@@ -149,6 +155,7 @@ def render_layout(
                     org_id=org_id,
                     api_key=api_key,
                     logger=app_logger,
+                    progress_callback=progress_callback,
                 )
 
                 if result is None:

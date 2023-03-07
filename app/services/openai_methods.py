@@ -4,10 +4,18 @@ from typing import Any, Dict
 
 import openai
 import tiktoken
+from config import get_config
 from log_tools import app_logger, log
+from pyrate_limiter import Duration, Limiter, RequestRate
 from utils.streamlit_decorators import error_to_streamlit
 
-DEFAULT_GPT_MODEL = "text-davinci-002"  # GPT-3 model to use
+config = get_config()
+
+rate_limits = (RequestRate(10, Duration.MINUTE),)  # 10 requests a minute
+
+# Create the rate limiter
+# Pyrate Limiter instance
+limiter = Limiter(*rate_limits)
 
 
 def num_tokens_from_string(string: str, encoding_name: str = "gpt2") -> int:
@@ -39,7 +47,7 @@ def complete_text(
     max_tokens: int,
     org_id: str,
     api_key: str,
-    model: str = DEFAULT_GPT_MODEL,
+    model: str = config["DEFAULT_GPT_MODEL"],
 ) -> str:
     """
     Use OpenAI's GPT-3 model to complete text based on the given prompt.
@@ -79,6 +87,7 @@ def complete_text(
 
 @log
 @error_to_streamlit
+@limiter.ratelimit("complete_text_chat")
 def complete_text_chat(
     prompt: str,
     max_tokens: int,
@@ -96,7 +105,7 @@ def complete_text_chat(
         org_id (str): The OpenAI organization ID.
         api_key (str): The OpenAI API key.
         model (str, optional): The OpenAI GPT-3 model to use. Defaults to
-        DEFAULT_GPT_MODEL.
+        'gpt-3.5-turbo-0301'.
 
     Returns:
         str: The completed text.

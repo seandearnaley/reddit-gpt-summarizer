@@ -2,7 +2,7 @@
 
 
 import logging
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from config import get_config
 from data_types.summary import GenerateSettings, SummaryData
@@ -17,6 +17,8 @@ from utils.common import (
 from utils.streamlit_decorators import spinner_decorator
 
 config = get_config()
+
+ProgressCallback = Optional[Callable[[int], None]]
 
 
 @log
@@ -49,11 +51,13 @@ def generate_summaries(
     api_key: str,
     prompt: str,
     subreddit: str,
+    progress_callback: ProgressCallback = None,
 ) -> Tuple[List[str], List[str]]:
     """Generate the summaries from the prompts."""
     prompts: List[str] = []
     summaries: List[str] = []
-    for comment_group in groups:
+    total_groups = len(groups)
+    for i, comment_group in enumerate(groups):
         complete_prompt = (
             f"{settings['query']}\n\n```"
             + f"Title: {summarize_summary(prompt, org_id, api_key)}\n\n"
@@ -71,19 +75,23 @@ def generate_summaries(
             api_key=api_key,
             model=settings["selected_model"],
         )
+
+        if progress_callback:
+            progress = int(((i + 1) / total_groups) * 100)
+            progress_callback(progress)
+
         prompt = summary
 
         summaries.append(summary)
     return prompts, summaries
 
 
+@log
 def summarize_summary(
     selftext: str, org_id: str, api_key: str, title: Optional[str] = None
 ) -> str:
     """Summarize the response."""
-    # out_text = selftext[: estimate_word_count(500)]
     out_text = summarize_body(selftext, org_id, api_key)
-    print(org_id, api_key)
     if title is None:
         return out_text
     return f"{title}\n{out_text}"
@@ -97,6 +105,7 @@ def generate_summary_data(
     org_id: str,
     api_key: str,
     logger: logging.Logger,
+    progress_callback: ProgressCallback = None,
     # request_json_func = request_json_from_url, add inections
     # complete_text_func=complete_text, add injections
 ) -> Optional[SummaryData]:
@@ -118,15 +127,23 @@ def generate_summary_data(
 
         logger.info("Generating Completions")
 
+        # # summarize if length of selftext > 500 characters
+        # init_prompt = (
+        #     summarize_summary(selftext, org_id, api_key, title)
+        #     if len(selftext) > 500
+        #     else selftext
+        # )
+
         init_prompt = summarize_summary(selftext, org_id, api_key, title)
 
         prompts, summaries = generate_summaries(
             settings=settings,
-            groups=groups[: settings["number_of_summaries"]],
+            groups=groups[: settings["max_number_of_summaries"]],
             org_id=org_id,
             api_key=api_key,
             prompt=init_prompt,
             subreddit=subreddit,
+            progress_callback=progress_callback,
         )
 
         output = ""
