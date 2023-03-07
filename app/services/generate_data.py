@@ -106,7 +106,7 @@ def generate_summary_data(
     api_key: str,
     logger: logging.Logger,
     progress_callback: ProgressCallback = None,
-    # request_json_func = request_json_from_url, add inections
+    # request_json_func = request_json_from_url, add injections
     # complete_text_func=complete_text, add injections
 ) -> Optional[SummaryData]:
     """
@@ -121,6 +121,9 @@ def generate_summary_data(
         title, selftext = get_metadata_from_reddit_json(reddit_json)
         contents = list(get_comment_bodies(reddit_json, []))
         groups = group_bodies_into_chunks(contents, settings["chunk_token_length"])
+
+        # add some more error handling here
+
         groups.insert(
             0, groups[0]
         )  # hacky insert twice to get same comments in 2 top summaries

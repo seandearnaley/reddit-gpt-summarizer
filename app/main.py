@@ -6,10 +6,10 @@ a summary of the reddit thread.
 
 
 import os
-from typing import Any, Dict, Tuple
+from typing import Tuple
 
 import streamlit as st
-from config import get_config
+from config import ConfigVars, get_config
 from debug_tools import setup_debugpy
 from dotenv import load_dotenv
 from log_tools import app_logger, log
@@ -44,7 +44,7 @@ def load_env() -> Tuple[str, str]:
     return org_id, api_key
 
 
-def main(config: Dict[str, Any]) -> None:
+def main(config: ConfigVars) -> None:
     """Main entry point for the app."""
     app_logger.info("Loading layout")
 
@@ -64,5 +64,5 @@ def main(config: Dict[str, Any]) -> None:
 
 
 if __name__ == "__main__":
-    app_config = get_config()
-    main(app_config)
+    _config = get_config()
+    main(_config)

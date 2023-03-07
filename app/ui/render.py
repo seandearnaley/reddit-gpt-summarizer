@@ -3,7 +3,7 @@ UI functions
 """
 # Import necessary modules
 
-
+import logging
 from typing import Any, Dict, Optional
 
 import streamlit as st
@@ -109,10 +109,60 @@ def render_summary(result: Dict[str, Any]) -> None:
         st.markdown(summary)
 
 
+def render_output(
+    reddit_url: str,
+    org_id: str,
+    api_key: str,
+    app_logger: Optional[logging.Logger] = None,
+    settings: Optional[GenerateSettings] = None,
+) -> None:
+    """
+    Render the placeholder for the summary.
+    """
+    output_placeholder = st.empty()
+
+    with output_placeholder.container():
+        if app_logger:
+            app_logger.info("Generating summary data")
+
+        progress_text = "Operation in progress. Please wait."
+        my_bar = st.progress(0, text=progress_text)
+
+        def progress_callback(progress: int) -> None:
+            my_bar.progress(progress, text=progress_text)
+
+        try:
+            result = generate_summary_data(
+                settings=settings,
+                json_url=replace_last_token_with_json(reddit_url),
+                org_id=org_id,
+                api_key=api_key,
+                logger=app_logger,
+                progress_callback=progress_callback,
+            )
+
+            if result is None:
+                st.error("No Summary Data")
+                st.stop()
+            save_output(str(result["title"]), str(result["output"]))
+
+            render_summary(result)
+            if app_logger:
+                app_logger.info("Summary data generated")
+
+        except Exception as ex:  # pylint: disable=broad-except
+            st.error(f"Unexpected error trying to generate_summary_data: {ex}")
+
+        st.success("Done!")
+
+    if st.button("Clear"):
+        output_placeholder.empty()
+
+
 def render_layout(
     org_id: str,
     api_key: str,
-    app_logger: Any = None,
+    app_logger: Optional[logging.Logger] = None,
     reddit_url: Optional[str] = None,
     settings: Optional[GenerateSettings] = None,
 ) -> None:
@@ -123,53 +173,23 @@ def render_layout(
     st.header(config["APP_TITLE"])
 
     # Create an input box for url
-    if reddit_url is None:
+    if not reddit_url:
         reddit_url = render_input_box()
-        if reddit_url is None:
-            st.stop()
+        if not reddit_url:
+            return
 
-    if settings is None:
-        settings = render_settings(org_id, api_key)
+    settings = settings or render_settings(org_id, api_key)
 
-    if settings is None:
+    if not settings:
         st.error("No settings (not sure how this happened)")
-        st.stop()
+        return
 
     # Create a button to submit the url
     if st.button("Generate it!"):
-        summary_placeholder = st.empty()
-
-        with summary_placeholder.container():
-            app_logger.info("Generating summary data")
-
-            progress_text = "Operation in progress. Please wait."
-            my_bar = st.progress(0, text=progress_text)
-
-            def progress_callback(progress: int) -> None:
-                my_bar.progress(progress, text=progress_text)
-
-            try:
-                result = generate_summary_data(
-                    settings=settings,
-                    json_url=replace_last_token_with_json(reddit_url),
-                    org_id=org_id,
-                    api_key=api_key,
-                    logger=app_logger,
-                    progress_callback=progress_callback,
-                )
-
-                if result is None:
-                    st.error("No Summary Data")
-                    st.stop()
-                save_output(str(result["title"]), str(result["output"]))
-
-                render_summary(result)
-                app_logger.info("Summary data generated")
-
-            except Exception as ex:  # pylint: disable=broad-except
-                st.error(f"Unexpected error trying to generate_summary_data: {ex}")
-
-            st.success("Done!")
-
-        if st.button("Clear"):
-            summary_placeholder.empty()
+        render_output(
+            app_logger=app_logger,
+            settings=settings,
+            reddit_url=reddit_url,
+            org_id=org_id,
+            api_key=api_key,
+        )

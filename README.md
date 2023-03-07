@@ -72,8 +72,7 @@ You can customize the behavior of the app using the `config.py` file. The follow
 - `DEFAULT_NUMBER_OF_SUMMARIES`: The default number of summaries to generate. 
 - `DEFAULT_MAX_TOKEN_LENGTH`: The default maximum length of a summary. 
 - `LOG_FILE_PATH`: The path to the log file. 
-- `LOG_COLORS`: A dictionary of colors for the log. 
-- `THREAD_ID`: The ID of the thread to summarize. 
+- `LOG_COLORS`: A dictionary of colors for the log.
 - `REDDIT_URL`: The URL of the Reddit thread to summarize. 
 - `TODAYS_DATE`: Today's date. 
 - `LOG_NAME`: The name of the log file. 
