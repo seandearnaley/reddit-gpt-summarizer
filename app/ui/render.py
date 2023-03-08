@@ -7,14 +7,14 @@ import logging
 from typing import Optional
 
 import streamlit as st
-from config import get_config
+from config import ConfigLoader
 from data_types.summary import GenerateSettings
 from services.generate_data import generate_summary_data, get_reddit_meta
 from services.openai_methods import get_models
 from utils.common import is_valid_reddit_url, replace_last_token_with_json, save_output
 from utils.streamlit_decorators import expander_decorator
 
-config = get_config()
+config = ConfigLoader.get_config()
 
 
 def render_input_box() -> Optional[str]:

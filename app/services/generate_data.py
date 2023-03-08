@@ -4,9 +4,9 @@ import logging
 import re
 from typing import Callable, List, Optional, Tuple
 
-from config import get_config
+from config import ConfigLoader
 from data_types.summary import GenerateSettings, RedditMeta
-from log_tools import log
+from log_tools import Logger
 from services.openai_methods import (
     complete_text_chat,
     estimate_word_count,
@@ -20,12 +20,13 @@ from utils.common import (
 )
 from utils.streamlit_decorators import spinner_decorator
 
-config = get_config()
+config = ConfigLoader.get_config()
 
+app_logger = Logger.get_app_logger()
 ProgressCallback = Optional[Callable[[int, int, str, str], None]]
 
 
-@log
+@Logger.log
 def summarize_summary(
     selftext: str,
     title: Optional[str] = None,
@@ -105,6 +106,12 @@ def generate_summary_data(
         if len(groups) == 0:
             groups = ["No Comments"]
 
+        groups = (
+            group_bodies_into_chunks(contents, settings["chunk_token_length"])
+            if len(groups) > 0
+            else ["No Comments"]
+        )
+
         # Check if selftext is too long, and summarize if necessary
         init_prompt = (
             summarize_summary(selftext, title)
@@ -133,7 +140,7 @@ def generate_summary_data(
         raise ex
 
 
-@log
+@Logger.log
 def generate_summaries(
     settings: GenerateSettings,
     groups: List[str],

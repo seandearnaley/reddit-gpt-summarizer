@@ -6,10 +6,12 @@ a summary of the reddit thread.
 
 
 import streamlit as st
-from config import ConfigVars, get_config
-from debug_tools import setup_debugpy
-from log_tools import app_logger
+from config import ConfigLoader, ConfigVars
+from debug_tools import Debugger
+from log_tools import Logger
 from ui.render import render_layout
+
+app_logger = Logger.get_app_logger()
 
 
 def main(config: ConfigVars) -> None:
@@ -19,7 +21,7 @@ def main(config: ConfigVars) -> None:
     # Set page configuration, must be done before rendering layout
     st.set_page_config(page_title=config["APP_TITLE"], page_icon="🤖", layout="wide")
 
-    setup_debugpy(
+    Debugger.setup_debugpy(
         st,
         app_logger,
         flag=config["ATTACH_DEBUGGER"],
@@ -32,5 +34,5 @@ def main(config: ConfigVars) -> None:
 
 
 if __name__ == "__main__":
-    _config = get_config()
+    _config = ConfigLoader.get_config()
     main(_config)

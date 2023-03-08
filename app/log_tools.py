@@ -1,4 +1,5 @@
 """Logging configuration for the project."""
+
 import logging
 import logging.config
 import os
@@ -6,69 +7,74 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Optional, TypeVar
 
-from config import get_config
+from config import ConfigLoader
 
-F = TypeVar("F", bound=Callable[..., Any])
+T = TypeVar("T")
 
-AppLogger = logging.Logger
 
-config = get_config()
+class Logger:
+    """Class to handle logging configuration."""
 
-LOG_NAME = config["LOG_NAME"]
-
-# Define the logging configuration as a dictionary
-LOGGING_CONFIG = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "color": {
-            "()": "colorlog.ColoredFormatter",
-            "format": "%(log_color)s%(levelname)s:%(message)s",
-            "log_colors": config["LOG_COLORS"],
-        }
-    },
-    "handlers": {
-        "file": {
-            "class": "logging.FileHandler",
-            "formatter": "color",
-            "filename": os.path.abspath(config["LOG_FILE_PATH"]),
+    _config = ConfigLoader.get_config()
+    _log_name = _config["LOG_NAME"]
+    _logging_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "color": {
+                "()": "colorlog.ColoredFormatter",
+                "format": "%(log_color)s%(levelname)s:%(message)s",
+                "log_colors": _config["LOG_COLORS"],
+            }
         },
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "color",
+        "handlers": {
+            "file": {
+                "class": "logging.FileHandler",
+                "formatter": "color",
+                "filename": os.path.abspath(_config["LOG_FILE_PATH"]),
+            },
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "color",
+            },
         },
-    },
-    "loggers": {
-        LOG_NAME: {
-            "handlers": ["file", "console"],
-            "level": logging.INFO,
-        }
-    },
-}
+        "loggers": {
+            _log_name: {
+                "handlers": ["file", "console"],
+                "level": logging.INFO,
+            }
+        },
+    }
 
+    # Load the logging configuration using dictConfig
+    try:
+        logging.config.dictConfig(_logging_config)
+    except ValueError as e:
+        print(f"Error occurred during logging configuration: {str(e)}")
+        raise
 
-# Load the logging configuration using dictConfig
-try:
-    logging.config.dictConfig(LOGGING_CONFIG)
-except ValueError as e:
-    print(f"Error occurred during logging configuration: {str(e)}")
-    raise
+    app_logger = logging.getLogger(_log_name)
+    app_logger.debug("Logging is configured.")
 
-app_logger = logging.getLogger(LOG_NAME)
-app_logger.debug("Logging is configured.")
+    @classmethod
+    def log(
+        cls, func: Callable[..., T], logger: Optional[logging.Logger] = None
+    ) -> Callable[..., T]:
+        """Decorator to log function calls and return values."""
+        if logger is None:
+            logger = cls.app_logger
 
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            logging.info("Calling %s", func.__name__)
+            result = func(*args, **kwargs)
+            timestamp: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            logger.info("%s: %s returned %s", timestamp, func.__name__, result)
+            return result
 
-def log(func: Any, logger: Optional[logging.Logger] = None) -> Any:
-    """Decorator to log function calls and return values."""
-    if logger is None:
-        logger = logging.getLogger(func.__module__)
+        return wrapper
 
-    @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        logging.info("Calling %s", func.__name__)
-        result = func(*args, **kwargs)
-        timestamp: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        logger.info("%s: %s returned %s", timestamp, func.__name__, result)
-        return result
-
-    return wrapper
+    @classmethod
+    def get_app_logger(cls) -> logging.Logger:
+        """Class method to access the app_logger attribute."""
+        return cls.app_logger

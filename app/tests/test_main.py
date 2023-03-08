@@ -1,13 +1,13 @@
 """Test main.py."""
 import pytest
-from config import get_config
+from config import ConfigLoader
 from services.generate_data import (
     get_comment_bodies,
     get_metadata_from_reddit_json,
     group_bodies_into_chunks,
 )
 
-DEFAULT_CHUNK_TOKEN_LENGTH = get_config()["DEFAULT_CHUNK_TOKEN_LENGTH"]
+DEFAULT_CHUNK_TOKEN_LENGTH = ConfigLoader.get_config()["DEFAULT_CHUNK_TOKEN_LENGTH"]
 
 
 def test_get_metadata_from_reddit_json() -> None:

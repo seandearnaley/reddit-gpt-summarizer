@@ -4,15 +4,15 @@ from typing import Any, Dict
 
 import openai
 import tiktoken
-from config import get_config
-from env import load_env
-from log_tools import app_logger, log
+from config import ConfigLoader
+from env import EnvVarsLoader
+from log_tools import Logger
 from pyrate_limiter import Duration, Limiter, RequestRate
 from utils.streamlit_decorators import error_to_streamlit
 
-config = get_config()
-
-env_vars = load_env()
+config = ConfigLoader.get_config()
+app_logger = Logger.get_app_logger()
+env_vars = EnvVarsLoader.load_env()
 
 openai.organization = env_vars["OPENAI_ORG_ID"]
 openai.api_key = env_vars["OPENAI_API_KEY"]
@@ -41,12 +41,10 @@ def estimate_word_count(num_tokens: int) -> int:
     # The average number of real words per token for GPT-2 is 0.56, according to OpenAI.
     # Multiply the number of tokens by this average to estimate the total number of real
     # words.
-    estimated_word_count = math.ceil(num_tokens * 0.56)
-
-    return estimated_word_count
+    return math.ceil(num_tokens * 0.56)
 
 
-@log
+@Logger.log
 @error_to_streamlit
 def complete_text(
     prompt: str,
@@ -88,7 +86,7 @@ def complete_text(
     return response["choices"][0]["text"]  # completed_text
 
 
-@log
+@Logger.log
 @error_to_streamlit
 @limiter.ratelimit("complete_text_chat")
 def complete_text_chat(

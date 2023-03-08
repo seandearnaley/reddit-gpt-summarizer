@@ -8,9 +8,10 @@ a summary of the reddit thread.
 import os
 from typing import TypedDict
 
-import streamlit as st
 from dotenv import load_dotenv
-from log_tools import app_logger, log
+from log_tools import Logger
+
+app_logger = Logger.get_app_logger()
 
 
 class EnvVars(TypedDict):
@@ -20,31 +21,40 @@ class EnvVars(TypedDict):
     OPENAI_API_KEY: str
 
 
-@log
-def load_env() -> EnvVars:
-    """
-    Load the environment variables from the .env file.
+class EnvVarsLoader:
+    """Class for loading environment variables."""
 
-    Returns:
-        tuple: A tuple of organization ID and API key
-    """
-    try:
-        load_dotenv()
-    except FileNotFoundError:
-        err_msg = "Could not find .env file. Please create one."
-        app_logger.error(err_msg)
-        st.error(err_msg)
-        st.stop()
+    _env_vars = None
 
-    org_id = os.getenv("OPENAI_ORG_ID")
-    api_key = os.getenv("OPENAI_API_KEY")
+    @classmethod
+    @Logger.log
+    def load_env(cls) -> EnvVars:
+        """
+        Load the environment variables from the .env file.
 
-    if org_id is None or api_key is None:
-        err_msg = "Missing OpenAI API key or organization ID."
-        app_logger.error(err_msg)
-        st.error(err_msg)
-        st.stop()
+        Returns:
+            tuple: A tuple of organization ID and API key
+        """
+        if cls._env_vars is not None:
+            return cls._env_vars
 
-    env_vars: EnvVars = {"OPENAI_ORG_ID": org_id, "OPENAI_API_KEY": api_key}
+        try:
+            load_dotenv()
+        except FileNotFoundError as exc:
+            err_msg = "Could not find .env file. Please create one."
+            app_logger.error(err_msg)
+            raise FileNotFoundError(err_msg) from exc
 
-    return env_vars
+        org_id = os.getenv("OPENAI_ORG_ID")
+        api_key = os.getenv("OPENAI_API_KEY")
+
+        if org_id is None or api_key is None:
+            err_msg = "Missing OpenAI API key or organization ID."
+            app_logger.error(err_msg)
+            raise ValueError(err_msg)
+
+        env_vars: EnvVars = {"OPENAI_ORG_ID": org_id, "OPENAI_API_KEY": api_key}
+
+        cls._env_vars = env_vars
+
+        return env_vars
