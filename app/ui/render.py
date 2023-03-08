@@ -33,6 +33,7 @@ def render_settings() -> GenerateSettings:
     """
     Render the settings for the app and return the model and settings.
     """
+    system_role: str = st.text_input("System Role", config["DEFAULT_SYSTEM_ROLE"])
     query_text: str = st.text_area(
         "Instructions", config["DEFAULT_QUERY_TEXT"], height=250
     )
@@ -80,6 +81,7 @@ def render_settings() -> GenerateSettings:
         st.markdown(config["HELP_TEXT"])
 
     return {
+        "system_role": system_role,
         "query": query_text,
         "chunk_token_length": int(chunk_token_length),
         "max_number_of_summaries": int(max_number_of_summaries),
@@ -126,8 +128,14 @@ def render_output(
         progress_text = "Operation in progress. Please wait."
         my_bar = st.progress(0, text=progress_text)
 
-        def progress_callback(progress: int) -> None:
+        def progress_callback(
+            progress: int, idx: int, prompt: str, summary: str
+        ) -> None:
             my_bar.progress(progress, text=progress_text)
+            with st.expander(f"Prompt {idx}"):
+                st.text(prompt)
+            st.subheader(f"ChatGPT Response: {idx}")
+            st.markdown(summary)
 
         try:
             result = generate_summary_data(
@@ -142,7 +150,7 @@ def render_output(
                 st.stop()
             save_output(str(result["title"]), str(result["output"]))
 
-            render_summary(result)
+            # render_summary(result)
             if app_logger:
                 app_logger.info("Summary data generated")
 

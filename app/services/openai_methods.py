@@ -95,6 +95,7 @@ def complete_text_chat(
     prompt: str,
     max_tokens: int,
     model: str = "gpt-3.5-turbo-0301",
+    system_role: str = config["DEFAULT_SYSTEM_ROLE"],
 ) -> str:
     """
     Use OpenAI's ChatGPT to complete text based on the given prompt.
@@ -119,7 +120,7 @@ def complete_text_chat(
         response: Dict[str, Any] = openai.ChatCompletion.create(  # type: ignore
             model=model,
             messages=[
-                {"role": "system", "content": "You are a professional writer."},
+                {"role": "system", "content": system_role},
                 {"role": "user", "content": prompt},
             ],
             max_tokens=max_tokens,

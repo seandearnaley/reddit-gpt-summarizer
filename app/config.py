@@ -24,6 +24,7 @@ class ConfigVars(TypedDict):
     MAX_BODY_TOKEN_SIZE: int
     DEFAULT_QUERY_TEXT: str
     HELP_TEXT: str
+    DEFAULT_SYSTEM_ROLE: str
 
 
 # Constants
@@ -59,6 +60,7 @@ CONFIG_VARS: ConfigVars = {
         " way that is appropriate for the situation. Format the document using"
         " markdown and include links from the original article/reddit thread."
     ),
+    "DEFAULT_SYSTEM_ROLE": "You are a professional writer.",
     "HELP_TEXT": """
         #### Help
         Enter the instructions for the model to follow.

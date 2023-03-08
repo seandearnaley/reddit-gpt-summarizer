@@ -18,7 +18,7 @@ from utils.streamlit_decorators import spinner_decorator
 
 config = get_config()
 
-ProgressCallback = Optional[Callable[[int], None]]
+ProgressCallback = Optional[Callable[[int, int, str, str], None]]
 
 
 @log
@@ -62,6 +62,7 @@ def generate_summaries(
         prompts.append(complete_prompt)
 
         summary = complete_text_chat(
+            system_role=settings["system_role"],
             prompt=complete_prompt,
             max_tokens=settings["max_token_length"]
             - num_tokens_from_string(complete_prompt),
@@ -70,7 +71,7 @@ def generate_summaries(
 
         if progress_callback:
             progress = int(((i + 1) / total_groups) * 100)
-            progress_callback(progress)
+            progress_callback(progress, i + 1, complete_prompt, summary)
 
         prompt = summary
 
