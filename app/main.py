@@ -5,43 +5,11 @@ a summary of the reddit thread.
 # Import necessary modules
 
 
-import os
-from typing import Tuple
-
 import streamlit as st
 from config import ConfigVars, get_config
 from debug_tools import setup_debugpy
-from dotenv import load_dotenv
-from log_tools import app_logger, log
+from log_tools import app_logger
 from ui.render import render_layout
-
-
-@log
-def load_env() -> Tuple[str, str]:
-    """
-    Load the environment variables from the .env file.
-
-    Returns:
-        tuple: A tuple of organization ID and API key
-    """
-    try:
-        load_dotenv()
-    except FileNotFoundError:
-        err_msg = "Could not find .env file. Please create one."
-        app_logger.error(err_msg)
-        st.error(err_msg)
-        st.stop()
-
-    org_id = os.getenv("OPENAI_ORG_ID")
-    api_key = os.getenv("OPENAI_API_KEY")
-
-    if org_id is None or api_key is None:
-        err_msg = "Missing OpenAI API key or organization ID."
-        app_logger.error(err_msg)
-        st.error(err_msg)
-        st.stop()
-
-    return org_id, api_key
 
 
 def main(config: ConfigVars) -> None:
@@ -60,7 +28,7 @@ def main(config: ConfigVars) -> None:
         port=config["DEFAULT_DEBUG_PORT"],
     )
 
-    render_layout(*load_env(), app_logger=app_logger)
+    render_layout(app_logger=app_logger)
 
 
 if __name__ == "__main__":

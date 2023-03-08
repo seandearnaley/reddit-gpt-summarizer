@@ -29,7 +29,7 @@ def render_input_box() -> Optional[str]:
 
 
 @expander_decorator("Edit Settings")
-def render_settings(org_id: str, api_key: str) -> GenerateSettings:
+def render_settings() -> GenerateSettings:
     """
     Render the settings for the app and return the model and settings.
     """
@@ -39,7 +39,7 @@ def render_settings(org_id: str, api_key: str) -> GenerateSettings:
 
     col1, col2 = st.columns(2)
     with col1:
-        models = get_models(org_id, api_key)
+        models = get_models()
         model_ids = [model["id"] for model in models]  # type: ignore
         filtered_list = ["gpt-3.5-turbo", "gpt-3.5-turbo-0301"]
         model_ids_sorted = sorted(filtered_list)
@@ -111,8 +111,6 @@ def render_summary(result: Dict[str, Any]) -> None:
 
 def render_output(
     reddit_url: str,
-    org_id: str,
-    api_key: str,
     app_logger: Optional[logging.Logger] = None,
     settings: Optional[GenerateSettings] = None,
 ) -> None:
@@ -135,8 +133,6 @@ def render_output(
             result = generate_summary_data(
                 settings=settings,
                 json_url=replace_last_token_with_json(reddit_url),
-                org_id=org_id,
-                api_key=api_key,
                 logger=app_logger,
                 progress_callback=progress_callback,
             )
@@ -160,8 +156,6 @@ def render_output(
 
 
 def render_layout(
-    org_id: str,
-    api_key: str,
     app_logger: Optional[logging.Logger] = None,
     reddit_url: Optional[str] = None,
     settings: Optional[GenerateSettings] = None,
@@ -178,7 +172,7 @@ def render_layout(
         if not reddit_url:
             return
 
-    settings = settings or render_settings(org_id, api_key)
+    settings = settings or render_settings()
 
     if not settings:
         st.error("No settings (not sure how this happened)")
@@ -190,6 +184,4 @@ def render_layout(
             app_logger=app_logger,
             settings=settings,
             reddit_url=reddit_url,
-            org_id=org_id,
-            api_key=api_key,
         )

@@ -5,11 +5,17 @@ from typing import Any, Dict
 import openai
 import tiktoken
 from config import get_config
+from env import load_env
 from log_tools import app_logger, log
 from pyrate_limiter import Duration, Limiter, RequestRate
 from utils.streamlit_decorators import error_to_streamlit
 
 config = get_config()
+
+env_vars = load_env()
+
+openai.organization = env_vars["OPENAI_ORG_ID"]
+openai.api_key = env_vars["OPENAI_API_KEY"]
 
 rate_limits = (RequestRate(10, Duration.MINUTE),)  # 10 requests a minute
 
@@ -45,8 +51,6 @@ def estimate_word_count(num_tokens: int) -> int:
 def complete_text(
     prompt: str,
     max_tokens: int,
-    org_id: str,
-    api_key: str,
     model: str = config["DEFAULT_GPT_MODEL"],
 ) -> str:
     """
@@ -64,8 +68,7 @@ def complete_text(
     Returns:
         str: The completed text.
     """
-    openai.organization = org_id
-    openai.api_key = api_key
+
     app_logger.info("max_tokens=%s", max_tokens)
     if max_tokens <= 0:
         raise ValueError("The input max_tokens must be a positive integer.")
@@ -91,8 +94,6 @@ def complete_text(
 def complete_text_chat(
     prompt: str,
     max_tokens: int,
-    org_id: str,
-    api_key: str,
     model: str = "gpt-3.5-turbo-0301",
 ) -> str:
     """
@@ -110,8 +111,6 @@ def complete_text_chat(
     Returns:
         str: The completed text.
     """
-    openai.organization = org_id
-    openai.api_key = api_key
     app_logger.info("max_tokens=%s", max_tokens)
     if max_tokens <= 0:
         raise ValueError("The input max_tokens must be a positive integer.")
@@ -134,7 +133,7 @@ def complete_text_chat(
     return response["choices"][0]["message"]["content"]  # completed_text
 
 
-def get_models(org_id: str, api_key: str) -> Dict[str, Any]:
+def get_models() -> Dict[str, Any]:
     """
     Get a list of all available GPT-3 models.
 
@@ -145,8 +144,5 @@ def get_models(org_id: str, api_key: str) -> Dict[str, Any]:
     Returns:
         dict: The response from OpenAI's Engine API.
     """
-    openai.organization = org_id
-    openai.api_key = api_key
-
     response: Dict[str, Any] = openai.Engine.list()  # type: ignore
     return response["data"]

@@ -24,8 +24,6 @@ ProgressCallback = Optional[Callable[[int], None]]
 @log
 def summarize_body(
     body: str,
-    org_id: str,
-    api_key: str,
     max_tokens: int = config["MAX_BODY_TOKEN_SIZE"],
 ) -> str:
     """
@@ -38,8 +36,6 @@ def summarize_body(
     return complete_text_chat(
         prompt=summary_string,
         max_tokens=max_tokens,
-        org_id=org_id,
-        api_key=api_key,
     )
 
 
@@ -47,8 +43,6 @@ def summarize_body(
 def generate_summaries(
     settings: GenerateSettings,
     groups: List[str],
-    org_id: str,
-    api_key: str,
     prompt: str,
     subreddit: str,
     progress_callback: ProgressCallback = None,
@@ -60,7 +54,7 @@ def generate_summaries(
     for i, comment_group in enumerate(groups):
         complete_prompt = (
             f"{settings['query']}\n\n```"
-            + f"Title: {summarize_summary(prompt, org_id, api_key)}\n\n"
+            + f"Title: {summarize_summary(prompt)}\n\n"
             + f"\n\nr/{subreddit} on REDDIT\nCOMMENTS BEGIN\n{comment_group}\n"
             + "COMMENTS END\n```"
         )
@@ -71,8 +65,6 @@ def generate_summaries(
             prompt=complete_prompt,
             max_tokens=settings["max_token_length"]
             - num_tokens_from_string(complete_prompt),
-            org_id=org_id,
-            api_key=api_key,
             model=settings["selected_model"],
         )
 
@@ -87,11 +79,9 @@ def generate_summaries(
 
 
 @log
-def summarize_summary(
-    selftext: str, org_id: str, api_key: str, title: Optional[str] = None
-) -> str:
+def summarize_summary(selftext: str, title: Optional[str] = None) -> str:
     """Summarize the response."""
-    out_text = summarize_body(selftext, org_id, api_key)
+    out_text = summarize_body(selftext)
     if title is None:
         return out_text
     return f"{title}\n{out_text}"
@@ -102,8 +92,6 @@ def summarize_summary(
 def generate_summary_data(
     settings: GenerateSettings,
     json_url: str,
-    org_id: str,
-    api_key: str,
     logger: logging.Logger,
     progress_callback: ProgressCallback = None,
     # request_json_func = request_json_from_url, add injections
@@ -137,13 +125,11 @@ def generate_summary_data(
         #     else selftext
         # )
 
-        init_prompt = summarize_summary(selftext, org_id, api_key, title)
+        init_prompt = summarize_summary(selftext, title)
 
         prompts, summaries = generate_summaries(
             settings=settings,
             groups=groups[: settings["max_number_of_summaries"]],
-            org_id=org_id,
-            api_key=api_key,
             prompt=init_prompt,
             subreddit=subreddit,
             progress_callback=progress_callback,
