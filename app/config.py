@@ -48,7 +48,7 @@ CONFIG_VARS: ConfigVars = {
     "REDDIT_URL": "https://www.reddit.com/r/entertainment/comments/1193p9x/daft_punk_announce_new_random_access_memories/",  # noqa: E501 pylint: disable=line-too-long
     "LOG_NAME": "reddit_gpt_summarizer_log",
     "APP_TITLE": "Reddit Thread GPT Summarizer",
-    "MAX_BODY_TOKEN_SIZE": 1000,
+    "MAX_BODY_TOKEN_SIZE": 500,
     "DEFAULT_QUERY_TEXT": (
         f"(Todays Date: {datetime.now().strftime('%Y-%b-%d')}) Revise and improve the"
         " article by incorporating relevant information from the comments. Ensure the"

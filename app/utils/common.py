@@ -83,7 +83,7 @@ def replace_last_token_with_json(reddit_url: str) -> str:
     Replace the last token in the Reddit URL with ".json".
     """
     tokens = reddit_url.rsplit("/", 1)
-    new_url = tokens[0] + "/.json"
+    new_url = tokens[0] + ".json"
     return new_url
 
 

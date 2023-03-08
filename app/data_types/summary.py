@@ -1,16 +1,14 @@
 """Data types for the application."""
-from typing import List, TypedDict
+from typing import Any, Dict, List, TypedDict
 
 
-class SummaryData(TypedDict):
+class RedditMeta(TypedDict):
     """Data for a summary."""
 
     title: str
     selftext: str
-    output: str
-    prompts: List[str]
-    summaries: List[str]
-    groups: List[str]
+    subreddit: str
+    reddit_json: List[Dict[str, Any]]
 
 
 class GenerateSettings(TypedDict):

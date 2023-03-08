@@ -1,13 +1,17 @@
 """data functions for Reddit Scraper project."""
 
-
 import logging
+import re
 from typing import Callable, List, Optional, Tuple
 
 from config import get_config
-from data_types.summary import GenerateSettings, SummaryData
+from data_types.summary import GenerateSettings, RedditMeta
 from log_tools import log
-from services.openai_methods import complete_text_chat, num_tokens_from_string
+from services.openai_methods import (
+    complete_text_chat,
+    estimate_word_count,
+    num_tokens_from_string,
+)
 from utils.common import (
     get_comment_bodies,
     get_metadata_from_reddit_json,
@@ -22,111 +26,91 @@ ProgressCallback = Optional[Callable[[int, int, str, str], None]]
 
 
 @log
-def summarize_body(
-    body: str,
+def summarize_summary(
+    selftext: str,
+    title: Optional[str] = None,
     max_tokens: int = config["MAX_BODY_TOKEN_SIZE"],
 ) -> str:
-    """
-    Summarizes a body of text to be at most max_length tokens long.
-    """
+    """Summarize the response."""
     summary_string = (
-        f"summarize this text, don't go over {max_tokens} GPT-2 tokens:\n" + body
+        f"shorten this text to ~{max_tokens} GPT tokens through summarization:"
+        f" {selftext}"
     )
 
-    return complete_text_chat(
+    out_text = complete_text_chat(
         prompt=summary_string,
         max_tokens=max_tokens,
     )
 
-
-@log
-def generate_summaries(
-    settings: GenerateSettings,
-    groups: List[str],
-    prompt: str,
-    subreddit: str,
-    progress_callback: ProgressCallback = None,
-) -> Tuple[List[str], List[str]]:
-    """Generate the summaries from the prompts."""
-    prompts: List[str] = []
-    summaries: List[str] = []
-    total_groups = len(groups)
-    for i, comment_group in enumerate(groups):
-        complete_prompt = (
-            f"{settings['query']}\n\n```"
-            + f"Title: {summarize_summary(prompt)}\n\n"
-            + f"\n\nr/{subreddit} on REDDIT\nCOMMENTS BEGIN\n{comment_group}\n"
-            + "COMMENTS END\n```"
-        )
-
-        prompts.append(complete_prompt)
-
-        summary = complete_text_chat(
-            system_role=settings["system_role"],
-            prompt=complete_prompt,
-            max_tokens=settings["max_token_length"]
-            - num_tokens_from_string(complete_prompt),
-            model=settings["selected_model"],
-        )
-
-        if progress_callback:
-            progress = int(((i + 1) / total_groups) * 100)
-            progress_callback(progress, i + 1, complete_prompt, summary)
-
-        prompt = summary
-
-        summaries.append(summary)
-    return prompts, summaries
-
-
-@log
-def summarize_summary(selftext: str, title: Optional[str] = None) -> str:
-    """Summarize the response."""
-    out_text = summarize_body(selftext)
     if title is None:
         return out_text
     return f"{title}\n{out_text}"
 
 
-@log
-@spinner_decorator("Generating Summary Data")
-def generate_summary_data(
-    settings: GenerateSettings,
+@spinner_decorator("Getting Reddit Meta")
+def get_reddit_meta(
     json_url: str,
     logger: logging.Logger,
-    progress_callback: ProgressCallback = None,
-    # request_json_func = request_json_from_url, add injections
-    # complete_text_func=complete_text, add injections
-) -> Optional[SummaryData]:
+) -> RedditMeta:
     """
     Process the reddit thread JSON and generate a summary.
     """
     try:
+        # Request the JSON from the URL
         reddit_json = request_json_from_url(json_url)
-        subreddit = json_url.split("/", maxsplit=1)[0]
         if not reddit_json:
             raise ValueError("No JSON")
 
+        # Get the subreddit and metadata from the JSON
+        match = re.search(r"/r/(\w+)/", json_url)
+        if match:
+            subreddit = match.group(1)
+        else:
+            raise ValueError("No subreddit found in URL")
+
         title, selftext = get_metadata_from_reddit_json(reddit_json)
+
+        return RedditMeta(
+            title=title, selftext=selftext, subreddit=subreddit, reddit_json=reddit_json
+        )
+
+    except Exception as ex:  # pylint: disable=broad-except
+        logger.error(f"Error getting reddit meta data: {ex}")
+        raise ex
+
+
+@spinner_decorator("Generating Summary Data")
+def generate_summary_data(
+    settings: GenerateSettings,
+    reddit_meta: RedditMeta,
+    logger: logging.Logger,
+    progress_callback: ProgressCallback = None,
+) -> str:
+    """
+    Process the reddit thread JSON and generate a summary.
+    """
+    try:
+        title, selftext, subreddit, reddit_json = (
+            reddit_meta["title"],
+            reddit_meta["selftext"],
+            reddit_meta["subreddit"],
+            reddit_meta["reddit_json"],
+        )
+
+        # Get the comment bodies from the JSON and group them into chunks
         contents = list(get_comment_bodies(reddit_json, []))
+
         groups = group_bodies_into_chunks(contents, settings["chunk_token_length"])
 
-        # add some more error handling here
+        if len(groups) == 0:
+            groups = ["No Comments"]
 
-        groups.insert(
-            0, groups[0]
-        )  # hacky insert twice to get same comments in 2 top summaries
-
-        logger.info("Generating Completions")
-
-        # # summarize if length of selftext > 500 characters
-        # init_prompt = (
-        #     summarize_summary(selftext, org_id, api_key, title)
-        #     if len(selftext) > 500
-        #     else selftext
-        # )
-
-        init_prompt = summarize_summary(selftext, title)
+        # Check if selftext is too long, and summarize if necessary
+        init_prompt = (
+            summarize_summary(selftext, title)
+            if len(selftext) > estimate_word_count(settings["max_token_length"])
+            else f"{title}\n{selftext}"
+        )
 
         prompts, summaries = generate_summaries(
             settings=settings,
@@ -142,14 +126,59 @@ def generate_summary_data(
             output += f"============\nSUMMARY COUNT: {i}\n============\n"
             output += f"PROMPT: {prompt}\n\n{summary}\n===========================\n\n"
 
-        return {
-            "title": title,
-            "selftext": selftext,
-            "output": output,
-            "prompts": prompts,
-            "summaries": summaries,
-            "groups": groups,
-        }
+        return output
+
     except Exception as ex:  # pylint: disable=broad-except
         logger.error(f"Error generating summary data: {ex}")
-        return None
+        raise ex
+
+
+@log
+def generate_summaries(
+    settings: GenerateSettings,
+    groups: List[str],
+    prompt: str,
+    subreddit: str,
+    progress_callback: ProgressCallback = None,
+) -> Tuple[List[str], List[str]]:
+    """Generate the summaries from the prompts."""
+
+    prompts: List[str] = []
+    summaries: List[str] = []
+    total_groups = len(groups)
+    system_role, query, max_tokens, model = (
+        settings["system_role"],
+        settings["query"],
+        settings["max_token_length"],
+        settings["selected_model"],
+    )
+
+    for i, comment_group in enumerate(groups):
+        complete_prompt = (
+            f"{query}\n\n"
+            + "```"
+            + f"Title: {summarize_summary(prompt)}\n\n"
+            + f'<Comments subreddit="r/{subreddit}">\n{comment_group}\n</Comments>\n'
+            + "```"
+        )
+
+        prompts.append(complete_prompt)
+
+        summary = complete_text_chat(
+            system_role=system_role,
+            prompt=complete_prompt,
+            max_tokens=max_tokens
+            - num_tokens_from_string(complete_prompt)
+            - num_tokens_from_string(system_role)
+            - 4,  # figure out the 4
+            model=model,
+        )
+
+        if progress_callback:
+            progress = int(((i + 1) / total_groups) * 100)
+            progress_callback(progress, i + 1, complete_prompt, summary)
+
+        prompt = summary
+
+        summaries.append(summary)
+    return prompts, summaries
