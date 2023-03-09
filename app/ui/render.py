@@ -9,7 +9,7 @@ from typing import Optional
 import streamlit as st
 from config import ConfigLoader
 from data_types.summary import GenerateSettings
-from services.generate_data import generate_summary_data, get_reddit_meta
+from services.generate_data import generate_summary_data, get_reddit_praw
 from services.openai_methods import get_models
 from utils.common import is_valid_reddit_url, replace_last_token_with_json, save_output
 from utils.streamlit_decorators import expander_decorator
@@ -120,27 +120,27 @@ def render_output(
             st.markdown(summary)
 
         try:
-            reddit_meta = get_reddit_meta(
+            reddit_data = get_reddit_praw(
                 json_url=replace_last_token_with_json(reddit_url),
                 logger=app_logger,
             )
 
-            if not reddit_meta:
+            if not reddit_data:
                 st.error("no reddit data")
                 st.stop()
 
             st.text("Original Content:")
-            st.subheader(reddit_meta["title"])
-            st.text(reddit_meta["selftext"])
+            st.subheader(reddit_data["title"])
+            st.text(reddit_data["selftext"])
 
             str_output = generate_summary_data(
                 settings=settings,
-                reddit_meta=reddit_meta,
+                reddit_data=reddit_data,
                 logger=app_logger,
                 progress_callback=progress_callback,
             )
 
-            save_output(str(reddit_meta["title"]), str(str_output))
+            save_output(str(reddit_data["title"]), str(str_output))
 
             if app_logger:
                 app_logger.info("Summary data generated")
