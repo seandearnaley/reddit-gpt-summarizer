@@ -64,7 +64,7 @@ class Logger:
         if logger is None:
             logger = cls.app_logger
 
-        @wraps(func)
+        @wraps(func)  # preserve the metadata of the decorated function.
         def wrapper(*args: Any, **kwargs: Any) -> T:
             logging.info("Calling %s", func.__name__)
             result = func(*args, **kwargs)
