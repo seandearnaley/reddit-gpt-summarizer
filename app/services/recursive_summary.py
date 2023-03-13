@@ -104,7 +104,6 @@ def recursive_summarization(
     return response_text
 
 
-@limiter.ratelimit("summarize_text")
 def summarize_text(
     text: str, max_token_length: int, max_tokens: int = MAX_TOKENS
 ) -> str:
@@ -123,6 +122,8 @@ def summarize_text(
     summary = ""
     for chunk in chunks:
         print("chunk=", chunk)
+
+        limiter.try_acquire("summarize_text")
         summary = recursive_summarization(summary_size, chunk, summary)
         result += summary
 

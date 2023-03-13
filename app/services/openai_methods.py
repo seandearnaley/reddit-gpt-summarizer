@@ -88,7 +88,6 @@ def complete_text(
 
 @Logger.log
 @error_to_streamlit
-@limiter.ratelimit("complete_text_chat")
 def complete_text_chat(
     prompt: str,
     max_tokens: int,
@@ -115,6 +114,7 @@ def complete_text_chat(
         raise ValueError("The input max_tokens must be a positive integer.")
 
     try:
+        limiter.ratelimit("complete_text_chat")
         response: Dict[str, Any] = openai.ChatCompletion.create(  # type: ignore
             model=model,
             messages=[

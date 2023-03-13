@@ -95,7 +95,7 @@ def get_reddit_praw(
             username=env_vars["REDDIT_USERNAME"],
         )
 
-        submission: Any = reddit.submission(url=json_url)
+        submission: Any = reddit.submission(url=json_url)  # type: ignore
         submission.comment_sort = "top"  # sort comments by score (upvotes - downvotes)
         submission.comments.replace_more(limit=None)
 
