@@ -17,6 +17,11 @@ class Logger:
 
     _config = ConfigLoader.get_config()
     _log_name = _config["LOG_NAME"]
+    _log_file_path = os.path.abspath(_config["LOG_FILE_PATH"])
+
+    # Create the directory for log files if it doesn't exist
+    if not os.path.exists(os.path.dirname(_log_file_path)):
+        os.makedirs(os.path.dirname(_log_file_path))
     _logging_config = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -31,7 +36,7 @@ class Logger:
             "file": {
                 "class": "logging.FileHandler",
                 "formatter": "color",
-                "filename": os.path.abspath(_config["LOG_FILE_PATH"]),
+                "filename": _log_file_path,
             },
             "console": {
                 "class": "logging.StreamHandler",
@@ -69,7 +74,9 @@ class Logger:
             logging.info("Calling %s", func.__name__)
             result = func(*args, **kwargs)
             timestamp: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            logger.info("%s: %s returned %s", timestamp, func.__name__, result)
+
+            if logger:
+                logger.info("%s: %s returned %s", timestamp, func.__name__, result)
             return result
 
         return wrapper

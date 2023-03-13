@@ -1,6 +1,5 @@
 """Debugging tools."""
 # debugger.py
-
 import logging
 from typing import Any
 
@@ -35,10 +34,18 @@ class Debugger:
                 and not cls._debugger_set_up
             ):
                 if not debugpy.is_client_connected():
+                    # Check if the port is already in use
+                    # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    # result = sock.connect_ex((host, port))
+                    # if result == 0:
+                    #     # Port is in use - kill the process
+                    #     logger.warning(
+                    #         f"Port {port} is already in use. Killing the process..."
+                    #     )
+                    #     sock.close()
                     debugpy.listen((host, port))
                 if wait_for_client:
                     logger.info(">>> Waiting for debug client attach... <<<")
-                    # Only include this line if you always want to attach the debugger
                     debugpy.wait_for_client()
                     logger.info(">>> ...attached! <<<")
 

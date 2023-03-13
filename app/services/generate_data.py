@@ -2,25 +2,24 @@
 
 import logging
 import re
-from typing import Callable, List, Optional, Tuple
+from datetime import datetime
+from typing import Any, Callable, List, Optional, Tuple
 
+import praw  # type: ignore
 from config import ConfigLoader
-from data_types.summary import GenerateSettings, RedditMeta
+from data_types.summary import GenerateSettings, RedditData
+from env import EnvVarsLoader
 from log_tools import Logger
 from services.openai_methods import (
     complete_text_chat,
     estimate_word_count,
     num_tokens_from_string,
 )
-from utils.common import (
-    get_comment_bodies,
-    get_metadata_from_reddit_json,
-    group_bodies_into_chunks,
-    request_json_from_url,
-)
+from utils.common import group_bodies_into_chunks
 from utils.streamlit_decorators import spinner_decorator
 
 config = ConfigLoader.get_config()
+env_vars = EnvVarsLoader.load_env()
 
 app_logger = Logger.get_app_logger()
 ProgressCallback = Optional[Callable[[int, int, str, str], None]]
@@ -48,20 +47,39 @@ def summarize_summary(
     return f"{title}\n{out_text}"
 
 
-@spinner_decorator("Getting Reddit Meta")
-def get_reddit_meta(
+def format_date(timestamp: float) -> str:
+    """Format a timestamp into a human-readable date."""
+    date: datetime = datetime.fromtimestamp(timestamp)
+    return date.strftime("%Y-%b-%d %H:%M")
+
+
+def get_comments(comment: Any, level: int = 0) -> str:
+    """Get the comments from a Reddit thread."""
+    result = ""
+
+    author_name = comment.author.name if comment.author else "[deleted]"
+    created_date = format_date(comment.created_utc)
+
+    result += f"{created_date} [{author_name}] {comment.body}\n"
+
+    for reply in sorted(
+        comment.replies, key=lambda reply: reply.created_utc, reverse=True
+    ):
+        result += "    " * level
+        result += "> " + get_comments(reply, level + 1)
+
+    return result
+
+
+@spinner_decorator("Getting Reddit w/ PRAW")
+def get_reddit_praw(
     json_url: str,
     logger: logging.Logger,
-) -> RedditMeta:
+) -> RedditData:
     """
     Process the reddit thread JSON and generate a summary.
     """
     try:
-        # Request the JSON from the URL
-        reddit_json = request_json_from_url(json_url)
-        if not reddit_json:
-            raise ValueError("No JSON")
-
         # Get the subreddit and metadata from the JSON
         match = re.search(r"/r/(\w+)/", json_url)
         if match:
@@ -69,10 +87,30 @@ def get_reddit_meta(
         else:
             raise ValueError("No subreddit found in URL")
 
-        title, selftext = get_metadata_from_reddit_json(reddit_json)
+        reddit = praw.Reddit(
+            client_id=env_vars["REDDIT_CLIENT_ID"],
+            client_secret=env_vars["REDDIT_CLIENT_SECRET"],
+            password=env_vars["REDDIT_PASSWORD"],
+            user_agent=env_vars["REDDIT_USER_AGENT"],
+            username=env_vars["REDDIT_USERNAME"],
+        )
 
-        return RedditMeta(
-            title=title, selftext=selftext, subreddit=subreddit, reddit_json=reddit_json
+        submission: Any = reddit.submission(url=json_url)  # type: ignore
+        submission.comment_sort = "top"  # sort comments by score (upvotes - downvotes)
+        submission.comments.replace_more(limit=None)
+
+        title: Optional[str] = submission.title
+        selftext: Optional[str] = submission.selftext
+
+        if not title:
+            raise ValueError("No title found in JSON")
+
+        comment_string = ""
+        for comment in submission.comments:
+            comment_string += get_comments(comment)
+
+        return RedditData(
+            title=title, selftext=selftext, subreddit=subreddit, comments=comment_string
         )
 
     except Exception as ex:  # pylint: disable=broad-except
@@ -83,7 +121,7 @@ def get_reddit_meta(
 @spinner_decorator("Generating Summary Data")
 def generate_summary_data(
     settings: GenerateSettings,
-    reddit_meta: RedditMeta,
+    reddit_data: RedditData,
     logger: logging.Logger,
     progress_callback: ProgressCallback = None,
 ) -> str:
@@ -91,23 +129,26 @@ def generate_summary_data(
     Process the reddit thread JSON and generate a summary.
     """
     try:
-        title, selftext, subreddit, reddit_json = (
-            reddit_meta["title"],
-            reddit_meta["selftext"],
-            reddit_meta["subreddit"],
-            reddit_meta["reddit_json"],
+        title, selftext, subreddit, comments = (
+            reddit_data["title"],
+            reddit_data["selftext"],
+            reddit_data["subreddit"],
+            reddit_data["comments"],
         )
 
-        # Get the comment bodies from the JSON and group them into chunks
-        contents = list(get_comment_bodies(reddit_json, []))
+        if not comments:
+            comments = "No Comments"
 
-        groups = group_bodies_into_chunks(contents, settings["chunk_token_length"])
+        groups = group_bodies_into_chunks(comments, settings["chunk_token_length"])
 
         if len(groups) == 0:
             groups = ["No Comments"]
 
+        if (selftext is None) or (len(selftext) == 0):
+            selftext = "No selftext"
+
         groups = (
-            group_bodies_into_chunks(contents, settings["chunk_token_length"])
+            group_bodies_into_chunks(comments, settings["chunk_token_length"])
             if len(groups) > 0
             else ["No Comments"]
         )
@@ -164,7 +205,7 @@ def generate_summaries(
         complete_prompt = (
             f"{query}\n\n"
             + "```"
-            + f"Title: {summarize_summary(prompt)}\n\n"
+            + f"Title: {summarize_summary(prompt) if i > 0 else prompt}\n\n"
             + f'<Comments subreddit="r/{subreddit}">\n{comment_group}\n</Comments>\n'
             + "```"
         )
