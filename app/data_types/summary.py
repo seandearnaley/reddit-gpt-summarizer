@@ -5,9 +5,9 @@ from typing import TypedDict
 class RedditData(TypedDict):
     """Data for a summary."""
 
-    title: str | None
+    title: str
     selftext: str | None
-    subreddit: str | None
+    subreddit: str
     comments: str | None
 
 

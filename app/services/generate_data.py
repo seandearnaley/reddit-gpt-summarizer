@@ -102,6 +102,9 @@ def get_reddit_praw(
         title: Optional[str] = submission.title
         selftext: Optional[str] = submission.selftext
 
+        if not title:
+            raise ValueError("No title found in JSON")
+
         comment_string = ""
         for comment in submission.comments:
             comment_string += get_comments(comment)
