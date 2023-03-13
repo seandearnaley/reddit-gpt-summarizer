@@ -19,5 +19,4 @@ class GenerateSettings(TypedDict):
     max_number_of_summaries: int
     max_token_length: int
     selected_model: str
-    selected_model: str
     system_role: str
