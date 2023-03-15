@@ -45,7 +45,7 @@ def render_settings() -> GenerateSettings:
     with col1:
         models = get_models()
         model_ids = [model["id"] for model in models]  # type: ignore
-        filtered_list = ["gpt-3.5-turbo", "gpt-3.5-turbo-0301"]
+        filtered_list = ["gpt-3.5-turbo", "gpt-3.5-turbo-0301", "get-4"]
         model_ids_sorted = sorted(filtered_list)
         default_model_index = model_ids_sorted.index(config["DEFAULT_GPT_MODEL"])
         selected_model = st.radio(
