@@ -6,8 +6,6 @@ from typing import List
 
 from services.openai_methods import estimate_word_count, num_tokens_from_string
 
-HEADERS = {"User-Agent": "Mozilla/5.0"}
-
 
 def generate_filename(title: str) -> str:
     """Generate a filename from the given title."""
