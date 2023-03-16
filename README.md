@@ -1,5 +1,7 @@
 # Reddit GPT Summarizer
 
+## 3/16/2023: article @ https://medium.com/better-programming/building-a-reddit-thread-summarizer-with-chatgpt-api-5b0dcd50b88e
+
 ## 3/1/2023: added support for official ChatGPT API and models
 
 
@@ -20,9 +22,14 @@ poetry install
 
 You'll also need to provide OpenAI API credentials. Create a `.env` file and add the following:
 
-```makefile
-OPENAI_ORG_ID=<your_org_id>
-OPENAI_API_KEY=<your_api_key>
+```env
+OPENAI_ORG_ID=YOUR_ORG_ID
+OPENAI_API_KEY=YOUR_API_KEY
+REDDIT_CLIENT_ID=YOUR_CLIENT_ID
+REDDIT_CLIENT_SECRET=YOUR_CLIENT_SECRET
+REDDIT_USERNAME=YOUR_USERNAME
+REDDIT_PASSWORD=YOUR_PASSWORD
+REDDIT_USER_AGENT=linux:com.youragent.reddit-gpt-summarizer:v1.0.0 (by /u/yourusername)
 ```
 
 ## Development
