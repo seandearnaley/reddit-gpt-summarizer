@@ -1,5 +1,11 @@
 # Reddit GPT Summarizer
 
+## 3/17/2023: added support for GPT-4 models
+
+If you have access to the API, you can use the longer context windows today. See docs.
+https://platform.openai.com/docs/models/gpt-4
+Sign up for the waitlist here: https://openai.com/waitlist/gpt-4
+
 ## 3/16/2023: article @ https://medium.com/better-programming/building-a-reddit-thread-summarizer-with-chatgpt-api-5b0dcd50b88e
 
 ## 3/1/2023: added support for official ChatGPT API and models
