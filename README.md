@@ -1,5 +1,7 @@
 # Reddit GPT Summarizer
 
+## 3/16/2023: article @ https://medium.com/better-programming/building-a-reddit-thread-summarizer-with-chatgpt-api-5b0dcd50b88e
+
 ## 3/1/2023: added support for official ChatGPT API and models
 
 
