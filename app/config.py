@@ -32,7 +32,7 @@ class ConfigLoader:
 
     CONFIG_VARS: ConfigVars = ConfigVars(
         DEFAULT_GPT_MODEL="gpt-3.5-turbo",
-        ATTACH_DEBUGGER=True,
+        ATTACH_DEBUGGER=False,
         WAIT_FOR_CLIENT=False,
         DEFAULT_DEBUG_PORT=8765,
         DEBUGPY_HOST="localhost",

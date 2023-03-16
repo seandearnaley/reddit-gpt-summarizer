@@ -1,3 +1,4 @@
+# app/utils/common.py
 """Utility functions for the Reddit Scraper project."""
 import os
 import re
@@ -8,15 +9,10 @@ from services.openai_methods import estimate_word_count, num_tokens_from_string
 
 
 def generate_filename(title: str) -> str:
-    """Generate a filename from the given title."""
-    # Remove all special characters and spaces from the title
+    """Generate a sanitized filename from the given title."""
     filename = re.sub(r"[^\w\s]", "", title)
-    # Replace all remaining spaces with underscores
     filename = filename.replace(" ", "_")
-    # Shorten the filename if it is too long
-    if len(filename) > 100:
-        filename = filename[:100]
-    return filename
+    return filename[:100]
 
 
 def get_timestamp() -> str:
@@ -26,25 +22,14 @@ def get_timestamp() -> str:
 
 def save_output(title: str, output: str) -> str:
     """
-    Save the output to a file in current working dir. The filename will
-    be the generated from the title, santized with a timestamp appended to it.
+    Save the output to a file in the 'outputs' directory.
+    The filename is generated from the sanitized title with a timestamp appended.
     """
-    # Get the current working directory
-    cwd = os.getcwd()
-
-    # Define the relative path to the output folder
     output_folder = "outputs"
-
-    # Construct the full path to the output folder
-    output_path = os.path.join(cwd, output_folder)
-
-    # Create the output folder if it does not exist
+    output_path = os.path.join(os.getcwd(), output_folder)
     os.makedirs(output_path, exist_ok=True)
 
-    # Create the output filename with a timestamp
     output_filename = f"{generate_filename(title)}_{get_timestamp()}.txt"
-
-    # Construct the full path to the output file
     output_file_path = os.path.join(output_path, output_filename)
 
     with open(output_file_path, "w", encoding="utf-8") as output_file:
@@ -54,17 +39,14 @@ def save_output(title: str, output: str) -> str:
 
 
 def replace_last_token_with_json(reddit_url: str) -> str:
-    """
-    Replace the last token in the Reddit URL with ".json".
-    """
+    """Replace the last token in the Reddit URL with '.json'."""
     tokens = reddit_url.rsplit("/", 1)
-    new_url = tokens[0] + ".json"
-    return new_url
+    return f"{tokens[0]}.json"
 
 
 def is_valid_reddit_url(url: str) -> bool:
     """
-    Check if the URL is valid.
+    Check if the URL is a valid Reddit URL.
     """
     pattern = re.compile(
         r"^"  # Start of the string
@@ -80,18 +62,23 @@ def is_valid_reddit_url(url: str) -> bool:
 
 def group_bodies_into_chunks(contents: str, token_length: int) -> List[str]:
     """
-    Concatenate the bodies into an array of newline delimited strings that are
-    < token_length tokens long
+    Concatenate the content lines into a list of newline-delimited strings
+    that are less than token_length tokens long.
     """
     results: List[str] = []
-    result = ""
+    current_chunk = ""
+
     for line in contents.split("\n"):
         line = re.sub(r"\n+", "\n", line).strip()
-        result += line[: estimate_word_count(1000)] + "\n"
+        line = line[: estimate_word_count(1000)] + "\n"
 
-        if num_tokens_from_string(result) > token_length:
-            results.append(result)
-            result = ""
-    if result:
-        results.append(result)
+        if num_tokens_from_string(current_chunk + line) > token_length:
+            results.append(current_chunk)
+            current_chunk = ""
+
+        current_chunk += line
+
+    if current_chunk:
+        results.append(current_chunk)
+
     return results
