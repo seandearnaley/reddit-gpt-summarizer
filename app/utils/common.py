@@ -3,9 +3,6 @@
 import os
 import re
 from datetime import datetime
-from typing import List
-
-from services.openai_methods import estimate_word_count, num_tokens_from_string
 
 
 def generate_filename(title: str) -> str:
@@ -58,27 +55,3 @@ def is_valid_reddit_url(url: str) -> bool:
         r"\/$"  # End of the string
     )
     return bool(pattern.match(url))
-
-
-def group_bodies_into_chunks(contents: str, token_length: int) -> List[str]:
-    """
-    Concatenate the content lines into a list of newline-delimited strings
-    that are less than token_length tokens long.
-    """
-    results: List[str] = []
-    current_chunk = ""
-
-    for line in contents.split("\n"):
-        line = re.sub(r"\n+", "\n", line).strip()
-        line = line[: estimate_word_count(1000)] + "\n"
-
-        if num_tokens_from_string(current_chunk + line) > token_length:
-            results.append(current_chunk)
-            current_chunk = ""
-
-        current_chunk += line
-
-    if current_chunk:
-        results.append(current_chunk)
-
-    return results

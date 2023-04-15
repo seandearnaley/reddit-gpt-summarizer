@@ -13,9 +13,9 @@ from log_tools import Logger
 from services.openai_methods import (
     complete_text_chat,
     estimate_word_count,
+    group_bodies_into_chunks,
     num_tokens_from_string,
 )
-from utils.common import group_bodies_into_chunks
 from utils.streamlit_decorators import spinner_decorator
 
 config = ConfigLoader.get_config()
