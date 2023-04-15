@@ -68,7 +68,7 @@ poetry run pylint .
 To run the app, use the following command:
 
 ```sh
-streamlit run app.py
+streamlit run app/main.py
 ```
 
 This will start a web app that allows you to enter a Reddit thread URL and generate a summary. The app will automatically generate prompts for GPT-3 based on the thread's contents and generate a summary based on those prompts.

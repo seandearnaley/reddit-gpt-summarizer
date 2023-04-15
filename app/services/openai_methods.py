@@ -1,6 +1,7 @@
 """OpenAI Utility functions for the Reddit Scraper project."""
 import math
-from typing import Any, Dict
+import re
+from typing import Any, Dict, List
 
 import openai
 import tiktoken
@@ -44,6 +45,11 @@ def estimate_word_count(num_tokens: int) -> int:
     return math.ceil(num_tokens * 0.56)
 
 
+def validate_max_tokens(max_tokens: int) -> None:
+    if max_tokens <= 0:
+        raise ValueError("The input max_tokens must be a positive integer.")
+
+
 @Logger.log
 @error_to_streamlit
 def complete_text(
@@ -68,8 +74,7 @@ def complete_text(
     """
 
     app_logger.info("max_tokens=%s", max_tokens)
-    if max_tokens <= 0:
-        raise ValueError("The input max_tokens must be a positive integer.")
+    validate_max_tokens(max_tokens)
 
     try:
         response: Dict[str, Any] = openai.Completion.create(  # type: ignore
@@ -110,8 +115,7 @@ def complete_text_chat(
         str: The completed text.
     """
     app_logger.info("max_tokens=%s", max_tokens)
-    if max_tokens <= 0:
-        raise ValueError("The input max_tokens must be a positive integer.")
+    validate_max_tokens(max_tokens)
 
     try:
         limiter.ratelimit("complete_text_chat")
@@ -145,3 +149,27 @@ def get_models() -> Dict[str, Any]:
     """
     response: Dict[str, Any] = openai.Engine.list()  # type: ignore
     return response["data"]
+
+
+def group_bodies_into_chunks(contents: str, token_length: int) -> List[str]:
+    """
+    Concatenate the content lines into a list of newline-delimited strings
+    that are less than token_length tokens long.
+    """
+    results: List[str] = []
+    current_chunk = ""
+
+    for line in contents.split("\n"):
+        line = re.sub(r"\n+", "\n", line).strip()
+        line = line[: estimate_word_count(1000)] + "\n"
+
+        if num_tokens_from_string(current_chunk + line) > token_length:
+            results.append(current_chunk)
+            current_chunk = ""
+
+        current_chunk += line
+
+    if current_chunk:
+        results.append(current_chunk)
+
+    return results
