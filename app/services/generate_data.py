@@ -11,7 +11,7 @@ from data_types.summary import GenerateSettings, RedditData
 from env import EnvVarsLoader
 from log_tools import Logger
 from services.openai_methods import (
-    complete_text_chat,
+    complete_openai_text,
     estimate_word_count,
     group_bodies_into_chunks,
     num_tokens_from_string,
@@ -37,7 +37,7 @@ def summarize_summary(
         f" {selftext}"
     )
 
-    out_text = complete_text_chat(
+    out_text = complete_openai_text(
         prompt=summary_string,
         max_tokens=max_tokens,
     )
@@ -212,7 +212,7 @@ def generate_summaries(
 
         prompts.append(complete_prompt)
 
-        summary = complete_text_chat(
+        summary = complete_openai_text(
             system_role=system_role,
             prompt=complete_prompt,
             max_tokens=max_tokens

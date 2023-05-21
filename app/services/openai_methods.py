@@ -1,13 +1,14 @@
 """OpenAI Utility functions for the Reddit Scraper project."""
 import math
 import re
-from typing import Any, Dict, List
+from typing import List
 
 import openai
 import tiktoken
 from config import ConfigLoader
 from env import EnvVarsLoader
 from log_tools import Logger
+from openai.openai_object import OpenAIObject
 from pyrate_limiter import Duration, Limiter, RequestRate
 from utils.streamlit_decorators import error_to_streamlit
 
@@ -55,64 +56,26 @@ def validate_max_tokens(max_tokens: int) -> None:
 
 @Logger.log
 @error_to_streamlit
-def complete_text(
+def complete_openai_text(
     prompt: str,
     max_tokens: int,
     model: str = config["DEFAULT_GPT_MODEL"],
-) -> str:
-    """
-    Use OpenAI's GPT-3 model to complete text based on the given prompt.
-
-    Args:
-        prompt (str): The prompt to use as the starting point for text completion.
-        max_tokens (int, optional): The maximum number of tokens to generate in the
-        response. Defaults to MAX_TOKENS - num_tokens_from_string(prompt).
-        org_id (str): The OpenAI organization ID.
-        api_key (str): The OpenAI API key.
-        model (str, optional): The OpenAI GPT-3 model to use. Defaults to
-        DEFAULT_GPT_MODEL.
-
-    Returns:
-        str: The completed text.
-    """
-
-    app_logger.info("max_tokens=%s", max_tokens)
-    validate_max_tokens(max_tokens)
-
-    try:
-        response: Dict[str, Any] = openai.Completion.create(  # type: ignore
-            model=model,
-            prompt=prompt,
-            max_tokens=max_tokens,
-        )
-    except Exception as ex:  # pylint: disable=broad-except
-        return f"Error: unable to generate response: {ex}"
-
-    if len(response) == 0:
-        return "Response length is 0"
-
-    return response["choices"][0]["text"]  # completed_text
-
-
-@Logger.log
-@error_to_streamlit
-def complete_text_chat(
-    prompt: str,
-    max_tokens: int,
-    model: str = "gpt-3.5-turbo-0301",
+    is_chat: bool = True,
     system_role: str = config["DEFAULT_SYSTEM_ROLE"],
 ) -> str:
     """
-    Use OpenAI's ChatGPT to complete text based on the given prompt.
+    Use OpenAI's GPT model to complete text based on the given prompt.
 
     Args:
         prompt (str): The prompt to use as the starting point for text completion.
         max_tokens (int, optional): The maximum number of tokens to generate in the
         response. Defaults to MAX_TOKENS - num_tokens_from_string(prompt).
-        org_id (str): The OpenAI organization ID.
-        api_key (str): The OpenAI API key.
-        model (str, optional): The OpenAI GPT-3 model to use. Defaults to
-        'gpt-3.5-turbo-0301'.
+        model (str, optional): The OpenAI GPT model to use. Defaults to
+        DEFAULT_GPT_MODEL.
+        is_chat (bool, optional): If true, uses the chat model and requires the
+        system_role argument. Defaults to False.
+        system_role (str, optional): The system's role in the conversation. Defaults to
+        DEFAULT_SYSTEM_ROLE.
 
     Returns:
         str: The completed text.
@@ -121,22 +84,41 @@ def complete_text_chat(
     validate_max_tokens(max_tokens)
 
     try:
-        limiter.ratelimit("complete_text_chat")
-        response: Dict[str, Any] = openai.ChatCompletion.create(  # type: ignore
-            model=model,
-            messages=[
-                {"role": "system", "content": system_role},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=max_tokens,
-            frequency_penalty=0.7,
+        limiter.ratelimit("complete_openai_text")
+        response = (
+            openai.ChatCompletion.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_role},
+                    {"role": "user", "content": prompt},
+                ],
+                max_tokens=max_tokens,
+                frequency_penalty=0.7,
+            )
+            if is_chat
+            else openai.Completion.create(
+                model=model,
+                prompt=prompt,
+                max_tokens=max_tokens,
+            )
         )
-    except Exception as ex:  # pylint: disable=broad-except
-        return f"Error: unable to generate response: {ex}"
 
-    if len(response) == 0:
-        return "Response length is 0"
-    return response["choices"][0]["message"]["content"]  # completed_text
+        if not isinstance(response, OpenAIObject):
+            raise ValueError("Invalid Response")
+
+        if response.choices:
+            return (
+                response.choices[0].message.content.strip()
+                if is_chat
+                else response.choices[0].text.strip()
+            )
+
+        raise ValueError("Response doesn't have choices or choices have no text.")
+
+    except openai.OpenAIError as err:
+        return f"OpenAI Error: {err}"
+    except ValueError as err:
+        return f"Value error: {err}"
 
 
 def group_bodies_into_chunks(contents: str, token_length: int) -> List[str]:
