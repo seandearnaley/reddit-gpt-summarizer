@@ -2,7 +2,190 @@
 
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Dict, Tuple, TypedDict, TypeVar
+from typing import Any, Callable, Dict, List, Tuple, TypedDict, TypeVar
+
+
+class Model(TypedDict):
+    """A model configuration."""
+
+    name: str
+    id: str
+    default_chunk_token_length: int
+    default_number_of_summaries: int
+    max_token_length: int
+
+
+ModelList = List[Model]
+
+OPEN_AI_CHAT_MODELS: ModelList = [
+    {
+        "name": "GPT 3.5 Turbo",
+        "id": "gpt-3.5-turbo",
+        "default_chunk_token_length": 2000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 4096,
+    },
+    {
+        "name": "GPT 4 8k",
+        "id": "gpt-4",
+        "default_chunk_token_length": 4096,
+        "default_number_of_summaries": 3,
+        "max_token_length": 8192,
+    },
+    {
+        "name": "GPT 4 32k",
+        "id": "gpt-4-32k",
+        "default_chunk_token_length": 8192,
+        "default_number_of_summaries": 3,
+        "max_token_length": 32768,
+    },
+]
+
+OPEN_AI_INSTRUCT_MODELS: ModelList = [
+    {
+        "name": "Text Davinci 003",
+        "id": "text-davinci-003",
+        "default_chunk_token_length": 2000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 4097,
+    },
+    {
+        "name": "Text Davinci 002",
+        "id": "text-davinci-002",
+        "default_chunk_token_length": 2000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 4097,
+    },
+    {
+        "name": "Text Curie 001",
+        "id": "text-curie-001",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Babbage 001",
+        "id": "text-babbage-001",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Ada 001",
+        "id": "text-ada-001",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Davinci",
+        "id": "davinci",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Curie",
+        "id": "curie",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Babbage",
+        "id": "babbage",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Ada",
+        "id": "ada",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+]
+
+ANTHROPIC_AI_MODELS: ModelList = [
+    {
+        "name": "Claude v1",
+        "id": "claude-v1",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude v1 100k",
+        "id": "claude-v1-100k",
+        "default_chunk_token_length": 10000,
+        "default_number_of_summaries": 1,
+        "max_token_length": 100000,
+    },
+    {
+        "name": "Claude Instant v1",
+        "id": "claude-instant-v1",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude Instant v1 100k",
+        "id": "claude-instant-v1-100k",
+        "default_chunk_token_length": 10000,
+        "default_number_of_summaries": 1,
+        "max_token_length": 100000,
+    },
+    {
+        "name": "Claude v1.3",
+        "id": "claude-v1.3",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude v1.3 100k",
+        "id": "claude-v1.3-100k",
+        "default_chunk_token_length": 10000,
+        "default_number_of_summaries": 1,
+        "max_token_length": 100000,
+    },
+    {
+        "name": "Claude v1.2",
+        "id": "claude-v1.2",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude v1.0",
+        "id": "claude-v1.0",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude Instant v1.1",
+        "id": "claude-instant-v1.1",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude Instant v1.1 100k",
+        "id": "claude-instant-v1.1-100k",
+        "default_chunk_token_length": 10000,
+        "default_number_of_summaries": 1,
+        "max_token_length": 100000,
+    },
+    {
+        "name": "Claude Instant v1.0",
+        "id": "claude-instant-v1.0",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+]
 
 
 class ConfigVars(TypedDict):

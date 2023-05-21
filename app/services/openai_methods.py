@@ -46,6 +46,9 @@ def estimate_word_count(num_tokens: int) -> int:
 
 
 def validate_max_tokens(max_tokens: int) -> None:
+    """
+    Validate the max_tokens argument, raising a ValueError if it is not valid.
+    """
     if max_tokens <= 0:
         raise ValueError("The input max_tokens must be a positive integer.")
 
@@ -134,21 +137,6 @@ def complete_text_chat(
     if len(response) == 0:
         return "Response length is 0"
     return response["choices"][0]["message"]["content"]  # completed_text
-
-
-def get_models() -> Dict[str, Any]:
-    """
-    Get a list of all available GPT-3 models.
-
-    Args:
-        org_id (str): The OpenAI organization ID.
-        api_key (str): The OpenAI API key.
-
-    Returns:
-        dict: The response from OpenAI's Engine API.
-    """
-    response: Dict[str, Any] = openai.Engine.list()  # type: ignore
-    return response["data"]
 
 
 def group_bodies_into_chunks(contents: str, token_length: int) -> List[str]:
