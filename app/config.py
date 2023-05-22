@@ -221,15 +221,17 @@ class ConfigLoader:
         ),
         DEFAULT_SYSTEM_ROLE="You are a helpful assistant.",
         HELP_TEXT=(
-            "#### Help\n"
-            "Enter the instructions for the model to follow.\n"
-            "It will generate a summary of the Reddit thread.\n"
-            "The trick here is to experiment with token lengths and number\n"
-            "of summaries. The more summaries you generate, the more likely\n"
-            "you are to get a good summary.\n"
-            "The more tokens you use, the more likely you are to get a good summary.\n"
-            "The more tokens you use, the longer it will take to generate\n"
-            "the summary. The more summaries you generate, the more it will cost you.\n"
+            "#### Help\nEnter the instructions for the model to follow.\nIt will"
+            " generate a summary of the Reddit thread.\nThe trick here is to experiment"
+            " with token lengths and number\nof summaries. The more summaries you"
+            " generate, the more likely\nyou are to get a good summary.\nThe more"
+            " tokens you use, the more likely you are to get a good summary.\nThe more"
+            " tokens you use, the longer it will take to generate\nthe summary. The"
+            " more summaries you generate, the more it will cost you.\n\nNOTE: as of"
+            " 5/22/23 GPT-4 32k is not commonly available.\nAlso note: older OpenAI"
+            " Instruct models mostly produce garbage but try out Text Davinci 003, it's"
+            " not bad.\nAnthropic's 100k models can usually handle entire Reddit"
+            " threads without recursion"
         ),
     )
 
