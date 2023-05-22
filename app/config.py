@@ -2,18 +2,9 @@
 
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Dict, List, Tuple, TypedDict, TypeVar
+from typing import Any, Callable, Dict, List, Tuple, TypeVar
 
-
-class ModelConfig(TypedDict):
-    """A model configuration."""
-
-    name: str
-    id: str
-    default_chunk_token_length: int
-    default_number_of_summaries: int
-    max_token_length: int
-
+from data_types.summary import ConfigVars, ModelConfig
 
 ModelList = List[ModelConfig]
 
@@ -122,8 +113,8 @@ ANTHROPIC_AI_MODELS: ModelList = [
     {
         "name": "Claude v1 100k",
         "id": "claude-v1-100k",
-        "default_chunk_token_length": 10000,
-        "default_number_of_summaries": 1,
+        "default_chunk_token_length": 50000,
+        "default_number_of_summaries": 2,
         "max_token_length": 100000,
     },
     {
@@ -150,8 +141,8 @@ ANTHROPIC_AI_MODELS: ModelList = [
     {
         "name": "Claude v1.3 100k",
         "id": "claude-v1.3-100k",
-        "default_chunk_token_length": 10000,
-        "default_number_of_summaries": 1,
+        "default_chunk_token_length": 50000,
+        "default_number_of_summaries": 2,
         "max_token_length": 100000,
     },
     {
@@ -178,8 +169,8 @@ ANTHROPIC_AI_MODELS: ModelList = [
     {
         "name": "Claude Instant v1.1 100k",
         "id": "claude-instant-v1.1-100k",
-        "default_chunk_token_length": 10000,
-        "default_number_of_summaries": 1,
+        "default_chunk_token_length": 50000,
+        "default_number_of_summaries": 2,
         "max_token_length": 100000,
     },
     {
@@ -190,28 +181,6 @@ ANTHROPIC_AI_MODELS: ModelList = [
         "max_token_length": 9000,
     },
 ]
-
-
-class ConfigVars(TypedDict):
-    """Type definition for configuration variables."""
-
-    DEFAULT_GPT_MODEL: str
-    ATTACH_DEBUGGER: bool
-    WAIT_FOR_CLIENT: bool
-    DEFAULT_DEBUG_PORT: int
-    DEBUGPY_HOST: str
-    DEFAULT_CHUNK_TOKEN_LENGTH: int
-    DEFAULT_NUMBER_OF_SUMMARIES: int
-    DEFAULT_MAX_TOKEN_LENGTH: int
-    LOG_FILE_PATH: str
-    LOG_COLORS: Dict[str, str]
-    REDDIT_URL: str
-    LOG_NAME: str
-    APP_TITLE: str
-    MAX_BODY_TOKEN_SIZE: int
-    DEFAULT_QUERY_TEXT: str
-    HELP_TEXT: str
-    DEFAULT_SYSTEM_ROLE: str
 
 
 class ConfigLoader:

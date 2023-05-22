@@ -9,7 +9,7 @@ from typing import Optional
 import streamlit as st
 from config import ConfigLoader
 from data_types.summary import GenerateSettings
-from services.generate_data import generate_summary_data, get_reddit_praw
+from generate_data import generate_summary_data, get_reddit_praw
 from ui.settings import render_settings
 from utils.common import is_valid_reddit_url, replace_last_token_with_json, save_output
 

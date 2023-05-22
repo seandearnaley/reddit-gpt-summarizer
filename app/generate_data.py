@@ -6,12 +6,12 @@ from datetime import datetime
 from typing import Any, Callable, List, Optional, Tuple
 
 import praw  # type: ignore
-from config import OPEN_AI_CHAT_TYPE, ConfigLoader
+from config import ConfigLoader
 from data_types.summary import GenerateSettings, RedditData
 from env import EnvVarsLoader
+from llm_handler import complete_text
 from log_tools import Logger
-from services.openai_methods import (
-    complete_openai_text,
+from utils.llm_utils import (
     estimate_word_count,
     group_bodies_into_chunks,
     num_tokens_from_string,
@@ -28,6 +28,7 @@ ProgressCallback = Optional[Callable[[int, int, str, str], None]]
 @Logger.log
 def summarize_summary(
     selftext: str,
+    settings: GenerateSettings,
     title: Optional[str] = None,
     max_tokens: int = config["MAX_BODY_TOKEN_SIZE"],
 ) -> str:
@@ -37,8 +38,8 @@ def summarize_summary(
         f" {selftext}"
     )
 
-    out_text = complete_openai_text(
-        prompt=summary_string, max_tokens=max_tokens, model="gpt-3.5-turbo"
+    out_text = complete_text(
+        prompt=summary_string, max_tokens=max_tokens, settings=settings
     )
 
     if title is None:
@@ -193,33 +194,30 @@ def generate_summaries(
     prompts: List[str] = []
     summaries: List[str] = []
     total_groups = len(groups)
-    system_role, query, max_tokens, model = (
+    system_role, query, max_tokens = (
         settings["system_role"],
         settings["query"],
         settings["max_token_length"],
-        settings["selected_model"],
     )
 
     for i, comment_group in enumerate(groups):
         complete_prompt = (
             f"{query}\n\n"
             + "```"
-            + f"Title: {summarize_summary(prompt) if i > 0 else prompt}\n\n"
+            + f"Title: {summarize_summary(prompt, settings) if i > 0 else prompt}\n\n"
             + f'<Comments subreddit="r/{subreddit}">\n{comment_group}\n</Comments>\n'
             + "```"
         )
 
         prompts.append(complete_prompt)
 
-        summary = complete_openai_text(
-            system_role=system_role,
+        summary = complete_text(
             prompt=complete_prompt,
             max_tokens=max_tokens
-            - num_tokens_from_string(complete_prompt)
-            - num_tokens_from_string(system_role)
+            - num_tokens_from_string(complete_prompt, settings["selected_model_type"])
+            - num_tokens_from_string(system_role, settings["selected_model_type"])
             - 4,  # figure out the 4
-            model=model,
-            is_chat=settings["selected_model_type"] == OPEN_AI_CHAT_TYPE,
+            settings=settings,
         )
 
         if progress_callback:
