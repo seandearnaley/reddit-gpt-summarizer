@@ -2,29 +2,185 @@
 
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Dict, Tuple, TypedDict, TypeVar
+from typing import Any, Callable, Dict, List, Tuple, TypeVar
 
+from data_types.summary import ConfigVars, ModelConfig
 
-class ConfigVars(TypedDict):
-    """Type definition for configuration variables."""
+ModelList = List[ModelConfig]
 
-    DEFAULT_GPT_MODEL: str
-    ATTACH_DEBUGGER: bool
-    WAIT_FOR_CLIENT: bool
-    DEFAULT_DEBUG_PORT: int
-    DEBUGPY_HOST: str
-    DEFAULT_CHUNK_TOKEN_LENGTH: int
-    DEFAULT_NUMBER_OF_SUMMARIES: int
-    DEFAULT_MAX_TOKEN_LENGTH: int
-    LOG_FILE_PATH: str
-    LOG_COLORS: Dict[str, str]
-    REDDIT_URL: str
-    LOG_NAME: str
-    APP_TITLE: str
-    MAX_BODY_TOKEN_SIZE: int
-    DEFAULT_QUERY_TEXT: str
-    HELP_TEXT: str
-    DEFAULT_SYSTEM_ROLE: str
+OPEN_AI_CHAT_TYPE = "OpenAI Chat"
+OPEN_AI_INSTRUCT_TYPE = "OpenAI Instruct"
+ANTHROPIC_AI_TYPE = "Anthropic Chat"
+
+OPEN_AI_CHAT_MODELS: ModelList = [
+    {
+        "name": "GPT 3.5 Turbo",
+        "id": "gpt-3.5-turbo",
+        "default_chunk_token_length": 2000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 4096,
+    },
+    {
+        "name": "GPT 4 8k",
+        "id": "gpt-4",
+        "default_chunk_token_length": 4096,
+        "default_number_of_summaries": 3,
+        "max_token_length": 8192,
+    },
+    {
+        "name": "GPT 4 32k",
+        "id": "gpt-4-32k",
+        "default_chunk_token_length": 8192,
+        "default_number_of_summaries": 3,
+        "max_token_length": 32768,
+    },
+]
+
+OPEN_AI_INSTRUCT_MODELS: ModelList = [
+    {
+        "name": "Text Davinci 003",
+        "id": "text-davinci-003",
+        "default_chunk_token_length": 2000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 4097,
+    },
+    {
+        "name": "Text Davinci 002",
+        "id": "text-davinci-002",
+        "default_chunk_token_length": 2000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 4097,
+    },
+    {
+        "name": "Text Curie 001",
+        "id": "text-curie-001",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Babbage 001",
+        "id": "text-babbage-001",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Ada 001",
+        "id": "text-ada-001",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Davinci",
+        "id": "davinci",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Curie",
+        "id": "curie",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Babbage",
+        "id": "babbage",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+    {
+        "name": "Text Ada",
+        "id": "ada",
+        "default_chunk_token_length": 1000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 2049,
+    },
+]
+
+ANTHROPIC_AI_MODELS: ModelList = [
+    {
+        "name": "Claude v1",
+        "id": "claude-v1",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude v1 100k",
+        "id": "claude-v1-100k",
+        "default_chunk_token_length": 50000,
+        "default_number_of_summaries": 2,
+        "max_token_length": 100000,
+    },
+    {
+        "name": "Claude Instant v1",
+        "id": "claude-instant-v1",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude Instant v1 100k",
+        "id": "claude-instant-v1-100k",
+        "default_chunk_token_length": 10000,
+        "default_number_of_summaries": 1,
+        "max_token_length": 100000,
+    },
+    {
+        "name": "Claude v1.3",
+        "id": "claude-v1.3",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude v1.3 100k",
+        "id": "claude-v1.3-100k",
+        "default_chunk_token_length": 50000,
+        "default_number_of_summaries": 2,
+        "max_token_length": 100000,
+    },
+    {
+        "name": "Claude v1.2",
+        "id": "claude-v1.2",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude v1.0",
+        "id": "claude-v1.0",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude Instant v1.1",
+        "id": "claude-instant-v1.1",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+    {
+        "name": "Claude Instant v1.1 100k",
+        "id": "claude-instant-v1.1-100k",
+        "default_chunk_token_length": 50000,
+        "default_number_of_summaries": 2,
+        "max_token_length": 100000,
+    },
+    {
+        "name": "Claude Instant v1.0",
+        "id": "claude-instant-v1.0",
+        "default_chunk_token_length": 4500,
+        "default_number_of_summaries": 3,
+        "max_token_length": 9000,
+    },
+]
 
 
 class ConfigLoader:
@@ -65,15 +221,17 @@ class ConfigLoader:
         ),
         DEFAULT_SYSTEM_ROLE="You are a helpful assistant.",
         HELP_TEXT=(
-            "#### Help\n"
-            "Enter the instructions for the model to follow.\n"
-            "It will generate a summary of the Reddit thread.\n"
-            "The trick here is to experiment with token lengths and number\n"
-            "of summaries. The more summaries you generate, the more likely\n"
-            "you are to get a good summary.\n"
-            "The more tokens you use, the more likely you are to get a good summary.\n"
-            "The more tokens you use, the longer it will take to generate\n"
-            "the summary. The more summaries you generate, the more it will cost you.\n"
+            "#### Help\nEnter the instructions for the model to follow.\nIt will"
+            " generate a summary of the Reddit thread.\nThe trick here is to experiment"
+            " with token lengths and number\nof summaries. The more summaries you"
+            " generate, the more likely\nyou are to get a good summary.\nThe more"
+            " tokens you use, the more likely you are to get a good summary.\nThe more"
+            " tokens you use, the longer it will take to generate\nthe summary. The"
+            " more summaries you generate, the more it will cost you.\n\nNOTE: as of"
+            " 5/22/23 GPT-4 32k is not commonly available.\nAlso note: older OpenAI"
+            " Instruct models mostly produce garbage but try out Text Davinci 003, it's"
+            " not bad.\nAnthropic's 100k models can usually handle entire Reddit"
+            " threads without recursion"
         ),
     )
 
