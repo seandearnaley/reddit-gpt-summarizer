@@ -36,7 +36,6 @@ class ModelConfig(TypedDict):
 class ConfigVars(TypedDict):
     """Type definition for configuration variables."""
 
-    DEFAULT_GPT_MODEL: str
     ATTACH_DEBUGGER: bool
     WAIT_FOR_CLIENT: bool
     DEFAULT_DEBUG_PORT: int

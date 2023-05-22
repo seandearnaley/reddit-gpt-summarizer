@@ -85,7 +85,6 @@ This will start a web app that allows you to enter a Reddit thread URL and gener
 ## Configuration
 
 You can customize the behavior of the app using the `config.py` file. The following configuration options are available: 
-- `DEFAULT_GPT_MODEL`: The default GPT-3 model to use. 
 - `ATTACH_DEBUGGER`: Whether to attach a debugger to the app. 
 - `WAIT_FOR_CLIENT`: Whether to wait for a client to attach before starting the app. 
 - `DEFAULT_DEBUG_PORT`: The default port to use for the debugger. 
