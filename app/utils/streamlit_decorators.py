@@ -23,7 +23,6 @@ def error_to_streamlit(func: Callable[..., T]) -> Callable[..., T]:
             st.write(f"Error occurred in {func.__name__}: {exception}")  # type: ignore
             raise exception
 
-        # st.write(f"{func.__name__} returned {result}")  # type: ignore
         return result
 
     return wrapper

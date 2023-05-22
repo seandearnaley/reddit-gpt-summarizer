@@ -20,3 +20,4 @@ class GenerateSettings(TypedDict):
     max_token_length: int
     selected_model: str
     system_role: str
+    selected_model_type: str

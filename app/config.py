@@ -5,7 +5,7 @@ from functools import wraps
 from typing import Any, Callable, Dict, List, Tuple, TypedDict, TypeVar
 
 
-class Model(TypedDict):
+class ModelConfig(TypedDict):
     """A model configuration."""
 
     name: str
@@ -15,7 +15,11 @@ class Model(TypedDict):
     max_token_length: int
 
 
-ModelList = List[Model]
+ModelList = List[ModelConfig]
+
+OPEN_AI_CHAT_TYPE = "OpenAI Chat"
+OPEN_AI_INSTRUCT_TYPE = "OpenAI Instruct"
+ANTHROPIC_AI_TYPE = "Anthropic Chat"
 
 OPEN_AI_CHAT_MODELS: ModelList = [
     {
