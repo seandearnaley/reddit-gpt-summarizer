@@ -59,7 +59,7 @@ def validate_max_tokens(max_tokens: int) -> None:
 def complete_openai_text(
     prompt: str,
     max_tokens: int,
-    model: str = config["DEFAULT_GPT_MODEL"],
+    model: str,
     is_chat: bool = True,
     system_role: str = config["DEFAULT_SYSTEM_ROLE"],
 ) -> str:
@@ -80,6 +80,7 @@ def complete_openai_text(
     Returns:
         str: The completed text.
     """
+    app_logger.info("is_chat=%s", is_chat)
     app_logger.info("max_tokens=%s", max_tokens)
     validate_max_tokens(max_tokens)
 

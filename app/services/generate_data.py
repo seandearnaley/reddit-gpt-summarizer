@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any, Callable, List, Optional, Tuple
 
 import praw  # type: ignore
-from config import ConfigLoader
+from config import OPEN_AI_CHAT_TYPE, ConfigLoader
 from data_types.summary import GenerateSettings, RedditData
 from env import EnvVarsLoader
 from log_tools import Logger
@@ -38,8 +38,7 @@ def summarize_summary(
     )
 
     out_text = complete_openai_text(
-        prompt=summary_string,
-        max_tokens=max_tokens,
+        prompt=summary_string, max_tokens=max_tokens, model="gpt-3.5-turbo"
     )
 
     if title is None:
@@ -220,6 +219,7 @@ def generate_summaries(
             - num_tokens_from_string(system_role)
             - 4,  # figure out the 4
             model=model,
+            is_chat=settings["selected_model_type"] == OPEN_AI_CHAT_TYPE,
         )
 
         if progress_callback:

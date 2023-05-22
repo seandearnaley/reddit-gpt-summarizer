@@ -44,7 +44,7 @@ def model_selection(col) -> Tuple[str, str, int, int, int]:
         index=0,
         format_func=lambda model_id: next(
             (model["name"] for model in models if model["id"] == model_id),
-            None,
+            model_id,
         ),
     )
 
