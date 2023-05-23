@@ -20,7 +20,7 @@ def error_to_streamlit(func: Callable[..., T]) -> Callable[..., T]:
         try:
             result = func(*args, **kwargs)
         except Exception as exception:
-            st.write(f"Error occurred in {func.__name__}: {exception}")  # type: ignore
+            st.write(f"Error occurred in {func.__name__}: {exception}")
             raise exception
 
         return result

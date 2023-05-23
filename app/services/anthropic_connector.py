@@ -1,8 +1,6 @@
 """OpenAI Utility functions for the Reddit Scraper project."""
 
-
 import anthropic
-import openai
 from config import ConfigLoader
 from data_types.summary import GenerateSettings
 from env import EnvVarsLoader
@@ -43,8 +41,6 @@ def complete_anthropic_text(
             max_tokens_to_sample=max_tokens,
         )
 
-        return response["completion"]
-    except openai.OpenAIError as err:
-        return f"OpenAI Error: {err}"
-    except ValueError as err:
-        return f"Value error: {err}"
+        return response["completion"].strip()
+    except Exception as err:  # pylint: disable=broad-except
+        return f"error: {err}"
