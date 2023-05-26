@@ -26,65 +26,40 @@ def model_selection(col) -> Tuple[str, str, int, int, int]:
     }
 
     selected_model_type = col.radio(
-        label="Select Model Type",
-        options=list(model_types.keys()),
+        "Select Model Type", options=list(model_types.keys())
     )
-
-    if selected_model_type is None:
-        col.text("Select a model type")
-        st.stop()
 
     models = model_types[selected_model_type]
-    model_ids_sorted = [
-        model.get("id") for model in sorted(models, key=lambda x: x.get("name"))
-    ]
+    model_ids_sorted = {
+        model.get("id"): model for model in sorted(models, key=lambda x: x.get("name"))
+    }
     selected_model = col.radio(
-        label="Select Model",
-        options=model_ids_sorted,
+        "Select Model",
+        options=model_ids_sorted.keys(),
         index=0,
-        format_func=lambda model_id: next(
-            (model["name"] for model in models if model["id"] == model_id),
-            model_id,
-        ),
+        format_func=lambda model_id: model_ids_sorted[model_id]["name"],
     )
 
-    if selected_model is None:
-        col.text("Select a model")
-        st.stop()
-
-    col.text(f"You selected model {selected_model}:")
-    selected_model_config = next(
-        (model for model in models if model["id"] == selected_model), None
-    )
-
-    if selected_model_config is None:
-        col.text("Invalid model selected")
-        st.stop()
-
-    chunk_token_length = col.number_input(
-        label="Chunk Token Length",
-        value=selected_model_config["default_chunk_token_length"],
-        step=1,
-    )
-    max_number_of_summaries = col.number_input(
-        label="Max Number of Summaries",
-        value=selected_model_config["default_number_of_summaries"],
-        min_value=1,
-        max_value=10,
-        step=1,
-    )
-    max_token_length = col.number_input(
-        label="Max Token Length",
-        value=selected_model_config["max_token_length"],
-        step=1,
-    )
+    selected_model_config = model_ids_sorted[selected_model]
 
     return (
         selected_model_type,
         selected_model,
-        chunk_token_length,
-        max_number_of_summaries,
-        max_token_length,
+        col.number_input(
+            "Chunk Token Length",
+            value=selected_model_config["default_chunk_token_length"],
+            step=1,
+        ),
+        col.number_input(
+            "Max Number of Summaries",
+            value=selected_model_config["default_number_of_summaries"],
+            min_value=1,
+            max_value=10,
+            step=1,
+        ),
+        col.number_input(
+            "Max Token Length", value=selected_model_config["max_token_length"], step=1
+        ),
     )
 
 
@@ -115,9 +90,9 @@ def render_settings() -> GenerateSettings:
     return {
         "system_role": system_role,
         "query": query_text,
-        "chunk_token_length": int(chunk_token_length),
-        "max_number_of_summaries": int(max_number_of_summaries),
-        "max_token_length": int(max_token_length),
+        "chunk_token_length": chunk_token_length,
+        "max_number_of_summaries": max_number_of_summaries,
+        "max_token_length": max_token_length,
         "selected_model": selected_model,
         "selected_model_type": selected_model_type,
     }
