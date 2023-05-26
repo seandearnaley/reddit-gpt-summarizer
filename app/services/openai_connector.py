@@ -35,30 +35,26 @@ def complete_openai_text(
         str: The completed text.
     """
 
-    system_role, model, selected_model_type = (
-        settings["system_role"],
-        settings["selected_model"],
-        settings["selected_model_type"],
-    )
-
-    is_chat = selected_model_type == OPEN_AI_CHAT_TYPE
+    is_chat = settings["selected_model_type"] == OPEN_AI_CHAT_TYPE
 
     try:
+        common_args = {
+            "model": settings["selected_model"],
+            "max_tokens": max_tokens,
+        }
+
         response = (
             openai.ChatCompletion.create(
-                model=model,
+                **common_args,
                 messages=[
-                    {"role": "system", "content": system_role},
+                    {"role": "system", "content": settings["system_role"]},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=max_tokens,
-                frequency_penalty=0.7,
             )
             if is_chat
             else openai.Completion.create(
-                model=model,
+                **common_args,
                 prompt=prompt,
-                max_tokens=max_tokens,
             )
         )
 
@@ -66,13 +62,14 @@ def complete_openai_text(
             raise ValueError("Invalid Response")
 
         if response.choices:
-            return (
-                response.choices[0].message.content.strip()
+            content = (
+                response.choices[0].message.content
                 if is_chat
-                else response.choices[0].text.strip()
+                else response.choices[0].text
             )
+            return content.strip()
 
-        raise ValueError("Response doesn't have choices or choices have no text.")
+        return "Response doesn't have choices or choices have no text."
 
     except openai.OpenAIError as err:
         return f"OpenAI Error: {err}"
