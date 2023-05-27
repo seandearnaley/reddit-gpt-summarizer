@@ -1,4 +1,4 @@
-"""OpenAI Utility functions for the Reddit Scraper project."""
+"""Anthropic Connector"""
 
 import anthropic
 from config import ConfigLoader
@@ -23,21 +23,19 @@ def complete_anthropic_text(
     Args:
         prompt (str): The prompt to use as the starting point for text completion.
         max_tokens (int, optional): The maximum number of tokens to generate in the
-        response. Defaults to MAX_TOKENS - num_tokens_from_string(prompt).
+        response.
         settings (GenerateSettings): The settings to use for generating the text.
 
     Returns:
         str: The completed text.
     """
 
-    model = settings["selected_model"]
-
     try:
         anthropic_client = anthropic.Client(env_vars["ANTHROPIC_API_KEY"])
         response = anthropic_client.completion(
             prompt=f"{anthropic.HUMAN_PROMPT} {prompt}{anthropic.AI_PROMPT}",
             stop_sequences=[anthropic.HUMAN_PROMPT],
-            model=model,
+            model=settings["selected_model"],
             max_tokens_to_sample=max_tokens,
         )
 

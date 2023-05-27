@@ -1,5 +1,4 @@
-"""OpenAI Utility functions for the Reddit Scraper project."""
-
+"""OpenAI Connector."""
 
 import openai
 from config import OPEN_AI_CHAT_TYPE, ConfigLoader
@@ -28,7 +27,7 @@ def complete_openai_text(
     Args:
         prompt (str): The prompt to use as the starting point for text completion.
         max_tokens (int, optional): The maximum number of tokens to generate in the
-        response. Defaults to MAX_TOKENS - num_tokens_from_string(prompt).
+        response.
         settings (GenerateSettings): The settings to use for generating the text.
 
     Returns:
