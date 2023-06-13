@@ -53,7 +53,7 @@ def render_output(
             my_bar.progress(progress, text=progress_text)
             with st.expander(f"Prompt {idx}"):
                 st.text(prompt)
-            st.subheader(f"ChatGPT Response: {idx}")
+            st.subheader(f"Response: {idx}")
             st.markdown(summary)
 
         try:
