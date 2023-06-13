@@ -1,5 +1,4 @@
 """data functions for Reddit Scraper project."""
-
 import logging
 import re
 from datetime import datetime
@@ -33,6 +32,7 @@ def summarize_summary(
     max_tokens: int = config["MAX_BODY_TOKEN_SIZE"],
 ) -> str:
     """Summarize the response."""
+
     summary_string = (
         f"shorten this text to ~{max_tokens} GPT tokens through summarization:"
         f" {selftext}"
@@ -155,7 +155,7 @@ def generate_summary_data(
 
         # Check if selftext is too long, and summarize if necessary
         init_prompt = (
-            summarize_summary(selftext, title)
+            summarize_summary(selftext, settings, title)
             if len(selftext) > estimate_word_count(settings["max_token_length"])
             else f"{title}\n{selftext}"
         )
@@ -176,9 +176,9 @@ def generate_summary_data(
 
         return output
 
-    except Exception as ex:  # pylint: disable=broad-except
+    except Exception as ex:
         logger.error(f"Error generating summary data: {ex}")
-        raise ex
+        raise
 
 
 @Logger.log
