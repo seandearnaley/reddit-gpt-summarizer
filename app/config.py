@@ -127,8 +127,8 @@ ANTHROPIC_AI_MODELS: ModelList = [
     {
         "name": "Claude Instant v1 100k",
         "id": "claude-instant-v1-100k",
-        "default_chunk_token_length": 10000,
-        "default_number_of_summaries": 1,
+        "default_chunk_token_length": 50000,
+        "default_number_of_summaries": 2,
         "max_token_length": 100000,
     },
     {
