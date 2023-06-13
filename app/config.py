@@ -14,15 +14,36 @@ ANTHROPIC_AI_TYPE = "Anthropic Chat"
 
 OPEN_AI_CHAT_MODELS: ModelList = [
     {
-        "name": "GPT 3.5 Turbo",
+        "name": "GPT 3.5 Turbo",  # will be updated to 0613 on June 267th 23
         "id": "gpt-3.5-turbo",
         "default_chunk_token_length": 2000,
         "default_number_of_summaries": 3,
         "max_token_length": 4096,
     },
     {
-        "name": "GPT 4 8k",
+        "name": "GPT 3.5 Turbo (0613)",  # will become default on June 27th 23
+        "id": "gpt-3.5-turbo-0613",
+        "default_chunk_token_length": 2000,
+        "default_number_of_summaries": 3,
+        "max_token_length": 4096,
+    },
+    {
+        "name": "GPT 3.5 Turbo 16k",
+        "id": "gpt-3.5-turbo-16k",
+        "default_chunk_token_length": 8192,
+        "default_number_of_summaries": 3,
+        "max_token_length": 16384,
+    },
+    {
+        "name": "GPT 4 8k",  # will be updated to 0613 on June 267th 23
         "id": "gpt-4",
+        "default_chunk_token_length": 4096,
+        "default_number_of_summaries": 3,
+        "max_token_length": 8192,
+    },
+    {
+        "name": "GPT 4 8k (0613)",  # will become default on June 27th 23
+        "id": "gpt-4-0613",
         "default_chunk_token_length": 4096,
         "default_number_of_summaries": 3,
         "max_token_length": 8192,
@@ -202,7 +223,7 @@ class ConfigLoader:
             "ERROR": "red",
             "CRITICAL": "bold_red",
         },
-        REDDIT_URL="https://www.reddit.com/r/entertainment/comments/1193p9x/daft_punk_announce_new_random_access_memories/",  # noqa: E501 pylint: disable=line-too-long
+        REDDIT_URL="https://www.reddit.com/r/OutOfTheLoop/comments/147fcdf/whats_going_on_with_subreddits_going_private_on/",  # noqa: E501 pylint: disable=line-too-long
         LOG_NAME="reddit_gpt_summarizer_log",
         APP_TITLE="Reddit Thread GPT Summarizer",
         MAX_BODY_TOKEN_SIZE=500,
