@@ -2,6 +2,8 @@
 
 ## 6/13/2023: added support for new ChatGPT models (16k + 0613 models)
 
+Video overview of updates: https://youtu.be/fPq6wSADgMQ
+
 ## 5/22/2023: added support for Anthropic models including Claude 100k + older OpenAI Instruct Models
 
 Expand settings to use Anthropic models; also added support for older OpenAI instruct models-- most produce garbage outputs but useful to test, that being said, Text Davinci 003 subjectively produces some of the highest quality outputs. The new 100k models can often consume entire reddit threads without recursion.
