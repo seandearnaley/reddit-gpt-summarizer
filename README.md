@@ -2,7 +2,9 @@
 
 ## 6/13/2023: added support for new ChatGPT models (16k + 0613 models)
 
-Video overview of updates: https://youtu.be/fPq6wSADgMQ
+Video overview of updates [@YouTube](https://youtu.be/fPq6wSADgMQ)
+
+New Article @ Better Programming/Medium: [Transforming Reddit Summarization With Claude 100k and GPT 16k](https://betterprogramming.pub/transforming-reddit-summarization-with-claude-100k-and-gpt-16k-4e2592d850cf)
 
 ## 5/22/2023: added support for Anthropic models including Claude 100k + older OpenAI Instruct Models
 
@@ -18,7 +20,9 @@ If you have access to the API, you can use the longer context windows today. See
 https://platform.openai.com/docs/models/gpt-4
 Sign up for the waitlist here: https://openai.com/waitlist/gpt-4
 
-## 3/16/2023: article @ https://medium.com/better-programming/building-a-reddit-thread-summarizer-with-chatgpt-api-5b0dcd50b88e
+## 3/16/2023: article
+
+Article @ Better Programming/Medium [Building a Reddit Thread Summarizer With ChatGPT API](https://medium.com/better-programming/building-a-reddit-thread-summarizer-with-chatgpt-api-5b0dcd50b88e)
 
 ## 3/1/2023: added support for official ChatGPT API and models
 
