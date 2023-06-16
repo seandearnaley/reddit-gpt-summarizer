@@ -42,7 +42,7 @@ To install the dependencies, you can use `poetry`:
 poetry install
 ```
 
-You'll also need to provide OpenAI API credentials. Create a `.env` file and add the following:
+You'll also need to provide OpenAI/Reddit/Anthropic API credentials. Create a `.env` file and add the following:
 
 ```env
 OPENAI_ORG_ID=YOUR_ORG_ID
