@@ -1,5 +1,6 @@
 """Configuration file for the Reddit Summarizer."""
 
+import json
 from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Dict, List, Tuple, TypeVar
@@ -12,196 +13,24 @@ OPEN_AI_CHAT_TYPE = "OpenAI Chat"
 OPEN_AI_INSTRUCT_TYPE = "OpenAI Instruct"
 ANTHROPIC_AI_TYPE = "Anthropic Chat"
 
-OPEN_AI_CHAT_MODELS: ModelList = [
-    {
-        "name": "GPT 3.5 Turbo",  # will be updated to 0613 on June 267th 23
-        "id": "gpt-3.5-turbo",
-        "default_chunk_token_length": 2000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 4096,
-    },
-    {
-        "name": "GPT 3.5 Turbo (0613)",  # will become default on June 27th 23
-        "id": "gpt-3.5-turbo-0613",
-        "default_chunk_token_length": 2000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 4096,
-    },
-    {
-        "name": "GPT 3.5 Turbo 16k",
-        "id": "gpt-3.5-turbo-16k",
-        "default_chunk_token_length": 8192,
-        "default_number_of_summaries": 3,
-        "max_token_length": 16384,
-    },
-    {
-        "name": "GPT 4 8k",  # will be updated to 0613 on June 267th 23
-        "id": "gpt-4",
-        "default_chunk_token_length": 4096,
-        "default_number_of_summaries": 3,
-        "max_token_length": 8192,
-    },
-    {
-        "name": "GPT 4 8k (0613)",  # will become default on June 27th 23
-        "id": "gpt-4-0613",
-        "default_chunk_token_length": 4096,
-        "default_number_of_summaries": 3,
-        "max_token_length": 8192,
-    },
-    {
-        "name": "GPT 4 32k",
-        "id": "gpt-4-32k",
-        "default_chunk_token_length": 8192,
-        "default_number_of_summaries": 3,
-        "max_token_length": 32768,
-    },
-]
 
-OPEN_AI_INSTRUCT_MODELS: ModelList = [
-    {
-        "name": "Text Davinci 003",
-        "id": "text-davinci-003",
-        "default_chunk_token_length": 2000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 4097,
-    },
-    {
-        "name": "Text Davinci 002",
-        "id": "text-davinci-002",
-        "default_chunk_token_length": 2000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 4097,
-    },
-    {
-        "name": "Text Curie 001",
-        "id": "text-curie-001",
-        "default_chunk_token_length": 1000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 2049,
-    },
-    {
-        "name": "Text Babbage 001",
-        "id": "text-babbage-001",
-        "default_chunk_token_length": 1000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 2049,
-    },
-    {
-        "name": "Text Ada 001",
-        "id": "text-ada-001",
-        "default_chunk_token_length": 1000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 2049,
-    },
-    {
-        "name": "Text Davinci",
-        "id": "davinci",
-        "default_chunk_token_length": 1000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 2049,
-    },
-    {
-        "name": "Text Curie",
-        "id": "curie",
-        "default_chunk_token_length": 1000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 2049,
-    },
-    {
-        "name": "Text Babbage",
-        "id": "babbage",
-        "default_chunk_token_length": 1000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 2049,
-    },
-    {
-        "name": "Text Ada",
-        "id": "ada",
-        "default_chunk_token_length": 1000,
-        "default_number_of_summaries": 3,
-        "max_token_length": 2049,
-    },
-]
+def load_models_from_json(file_path: str) -> ModelList:
+    """Load models from a JSON file."""
+    with open(file_path, "r", encoding="utf-8") as json_file:
+        models = json.load(json_file)
+    return models
 
-ANTHROPIC_AI_MODELS: ModelList = [
-    {
-        "name": "Claude v1",
-        "id": "claude-v1",
-        "default_chunk_token_length": 4500,
-        "default_number_of_summaries": 3,
-        "max_token_length": 9000,
-    },
-    {
-        "name": "Claude v1 100k",
-        "id": "claude-v1-100k",
-        "default_chunk_token_length": 50000,
-        "default_number_of_summaries": 2,
-        "max_token_length": 100000,
-    },
-    {
-        "name": "Claude Instant v1",
-        "id": "claude-instant-v1",
-        "default_chunk_token_length": 4500,
-        "default_number_of_summaries": 3,
-        "max_token_length": 9000,
-    },
-    {
-        "name": "Claude Instant v1 100k",
-        "id": "claude-instant-v1-100k",
-        "default_chunk_token_length": 50000,
-        "default_number_of_summaries": 2,
-        "max_token_length": 100000,
-    },
-    {
-        "name": "Claude v1.3",
-        "id": "claude-v1.3",
-        "default_chunk_token_length": 4500,
-        "default_number_of_summaries": 3,
-        "max_token_length": 9000,
-    },
-    {
-        "name": "Claude v1.3 100k",
-        "id": "claude-v1.3-100k",
-        "default_chunk_token_length": 50000,
-        "default_number_of_summaries": 2,
-        "max_token_length": 100000,
-    },
-    {
-        "name": "Claude v1.2",
-        "id": "claude-v1.2",
-        "default_chunk_token_length": 4500,
-        "default_number_of_summaries": 3,
-        "max_token_length": 9000,
-    },
-    {
-        "name": "Claude v1.0",
-        "id": "claude-v1.0",
-        "default_chunk_token_length": 4500,
-        "default_number_of_summaries": 3,
-        "max_token_length": 9000,
-    },
-    {
-        "name": "Claude Instant v1.1",
-        "id": "claude-instant-v1.1",
-        "default_chunk_token_length": 4500,
-        "default_number_of_summaries": 3,
-        "max_token_length": 9000,
-    },
-    {
-        "name": "Claude Instant v1.1 100k",
-        "id": "claude-instant-v1.1-100k",
-        "default_chunk_token_length": 50000,
-        "default_number_of_summaries": 2,
-        "max_token_length": 100000,
-    },
-    {
-        "name": "Claude Instant v1.0",
-        "id": "claude-instant-v1.0",
-        "default_chunk_token_length": 4500,
-        "default_number_of_summaries": 3,
-        "max_token_length": 9000,
-    },
-]
+
+# Load models from JSON files
+OPEN_AI_CHAT_MODELS = load_models_from_json(
+    "app/model_configs/open_ai_chat_models.json"
+)
+OPEN_AI_INSTRUCT_MODELS = load_models_from_json(
+    "app/model_configs/open_ai_instruct_models.json"
+)
+ANTHROPIC_AI_MODELS = load_models_from_json(
+    "app/model_configs/anthropic_ai_models.json"
+)
 
 
 class ConfigLoader:

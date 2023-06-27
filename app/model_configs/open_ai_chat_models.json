@@ -1,0 +1,30 @@
+[
+  {
+    "name": "GPT 3.5 Turbo",
+    "id": "gpt-3.5-turbo",
+    "default_chunk_token_length": 2000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4096
+  },
+  {
+    "name": "GPT 3.5 Turbo 16k",
+    "id": "gpt-3.5-turbo-16k",
+    "default_chunk_token_length": 8192,
+    "default_number_of_summaries": 3,
+    "max_token_length": 16384
+  },
+  {
+    "name": "GPT 4 8k",
+    "id": "gpt-4",
+    "default_chunk_token_length": 4096,
+    "default_number_of_summaries": 3,
+    "max_token_length": 8192
+  },
+  {
+    "name": "GPT 4 32k",
+    "id": "gpt-4-32k",
+    "default_chunk_token_length": 8192,
+    "default_number_of_summaries": 3,
+    "max_token_length": 32768
+  }
+]
