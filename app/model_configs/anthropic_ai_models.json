@@ -1,0 +1,79 @@
+[
+  {
+    "name": "Claude v1",
+    "id": "claude-v1",
+    "default_chunk_token_length": 4500,
+    "default_number_of_summaries": 3,
+    "max_token_length": 9000
+  },
+  {
+    "name": "Claude v1 100k",
+    "id": "claude-v1-100k",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 100000
+  },
+  {
+    "name": "Claude Instant v1",
+    "id": "claude-instant-v1",
+    "default_chunk_token_length": 4500,
+    "default_number_of_summaries": 3,
+    "max_token_length": 9000
+  },
+  {
+    "name": "Claude Instant v1 100k",
+    "id": "claude-instant-v1-100k",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 100000
+  },
+  {
+    "name": "Claude v1.3",
+    "id": "claude-v1.3",
+    "default_chunk_token_length": 4500,
+    "default_number_of_summaries": 3,
+    "max_token_length": 9000
+  },
+  {
+    "name": "Claude v1.3 100k",
+    "id": "claude-v1.3-100k",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 100000
+  },
+  {
+    "name": "Claude v1.2",
+    "id": "claude-v1.2",
+    "default_chunk_token_length": 4500,
+    "default_number_of_summaries": 3,
+    "max_token_length": 9000
+  },
+  {
+    "name": "Claude v1.0",
+    "id": "claude-v1.0",
+    "default_chunk_token_length": 4500,
+    "default_number_of_summaries": 3,
+    "max_token_length": 9000
+  },
+  {
+    "name": "Claude Instant v1.1",
+    "id": "claude-instant-v1.1",
+    "default_chunk_token_length": 4500,
+    "default_number_of_summaries": 3,
+    "max_token_length": 9000
+  },
+  {
+    "name": "Claude Instant v1.1 100k",
+    "id": "claude-instant-v1.1-100k",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 100000
+  },
+  {
+    "name": "Claude Instant v1.0",
+    "id": "claude-instant-v1.0",
+    "default_chunk_token_length": 4500,
+    "default_number_of_summaries": 3,
+    "max_token_length": 9000
+  }
+]

@@ -1,0 +1,65 @@
+[
+  {
+    "name": "Text Davinci 003",
+    "id": "text-davinci-003",
+    "default_chunk_token_length": 2000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4097
+  },
+  {
+    "name": "Text Davinci 002",
+    "id": "text-davinci-002",
+    "default_chunk_token_length": 2000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4097
+  },
+  {
+    "name": "Text Curie 001",
+    "id": "text-curie-001",
+    "default_chunk_token_length": 1000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 2049
+  },
+  {
+    "name": "Text Babbage 001",
+    "id": "text-babbage-001",
+    "default_chunk_token_length": 1000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 2049
+  },
+  {
+    "name": "Text Ada 001",
+    "id": "text-ada-001",
+    "default_chunk_token_length": 1000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 2049
+  },
+  {
+    "name": "Text Davinci",
+    "id": "davinci",
+    "default_chunk_token_length": 1000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 2049
+  },
+  {
+    "name": "Text Curie",
+    "id": "curie",
+    "default_chunk_token_length": 1000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 2049
+  },
+  {
+    "name": "Text Babbage",
+    "id": "babbage",
+    "default_chunk_token_length": 1000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 2049
+  },
+  {
+    "name": "Text Ada",
+    "id": "ada",
+    "default_chunk_token_length": 1000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 2049
+  }
+]

@@ -27,3 +27,5 @@ __pycache__/
 .mypy_cache/
 .pytest_cache/
 .idea/
+
+.DS_Store
