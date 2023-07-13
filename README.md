@@ -1,5 +1,11 @@
 # Reddit GPT Summarizer
 
+## 7/12/2023: added support for Claude v2
+
+See: [Anthropic/ Claude 2](https://www.anthropic.com/index/claude-2)
+
+Also updated some dependencies (Anthropic, OpenAI, PRAW, Streamlit)
+
 ## 6/13/2023: added support for new ChatGPT models (16k + 0613 models)
 
 Video overview of updates [@YouTube](https://youtu.be/fPq6wSADgMQ)

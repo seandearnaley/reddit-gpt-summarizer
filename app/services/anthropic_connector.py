@@ -1,6 +1,6 @@
 """Anthropic Connector"""
 
-import anthropic
+from anthropic import AI_PROMPT, HUMAN_PROMPT, Anthropic
 from config import ConfigLoader
 from data_types.summary import GenerateSettings
 from env import EnvVarsLoader
@@ -31,14 +31,14 @@ def complete_anthropic_text(
     """
 
     try:
-        anthropic_client = anthropic.Client(env_vars["ANTHROPIC_API_KEY"])
-        response = anthropic_client.completion(
-            prompt=f"{anthropic.HUMAN_PROMPT} {prompt}{anthropic.AI_PROMPT}",
-            stop_sequences=[anthropic.HUMAN_PROMPT],
+        anthropic_client = Anthropic(api_key=env_vars["ANTHROPIC_API_KEY"])
+        response = anthropic_client.completions.create(
+            prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
+            stop_sequences=[HUMAN_PROMPT],
             model=settings["selected_model"],
             max_tokens_to_sample=max_tokens,
         )
 
-        return response["completion"].strip()
+        return response.completion.strip()
     except Exception as err:  # pylint: disable=broad-except
         return f"error: {err}"
