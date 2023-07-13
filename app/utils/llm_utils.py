@@ -3,8 +3,8 @@ import math
 import re
 from typing import List
 
-import anthropic
 import tiktoken
+from anthropic import Anthropic
 from config import ANTHROPIC_AI_TYPE, OPEN_AI_CHAT_TYPE
 
 
@@ -32,6 +32,13 @@ def group_bodies_into_chunks(contents: str, token_length: int) -> List[str]:
     return results
 
 
+def anthropic_sync_count_tokens(text: str) -> int:
+    """Count the number of tokens in a text string using the Anthropic API."""
+    client = Anthropic()
+    number_of_tokens = client.count_tokens(text)
+    return number_of_tokens
+
+
 def num_tokens_from_string(string: str, model_type: str = OPEN_AI_CHAT_TYPE) -> int:
     """
     Returns the number of tokens in a text string.
@@ -41,7 +48,7 @@ def num_tokens_from_string(string: str, model_type: str = OPEN_AI_CHAT_TYPE) -> 
     is_anthropic = model_type == ANTHROPIC_AI_TYPE
 
     num_tokens = (
-        anthropic.count_tokens(string)
+        anthropic_sync_count_tokens(string)
         if is_anthropic
         else len(tiktoken.get_encoding("gpt2").encode(string))
     )

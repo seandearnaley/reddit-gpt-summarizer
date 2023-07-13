@@ -1,5 +1,12 @@
 [
   {
+    "name": "Claude v2",
+    "id": "claude-2",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 100000
+  },
+  {
     "name": "Claude v1",
     "id": "claude-v1",
     "default_chunk_token_length": 4500,
