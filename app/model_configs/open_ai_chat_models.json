@@ -26,5 +26,12 @@
     "default_chunk_token_length": 8192,
     "default_number_of_summaries": 3,
     "max_token_length": 32768
+  },
+  {
+    "name": "GPT 4-turbo Preview 128k",
+    "id": "gpt-4-1106-preview",
+    "default_chunk_token_length": 8192,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4096
   }
 ]
