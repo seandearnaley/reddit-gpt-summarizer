@@ -76,11 +76,7 @@ class ConfigLoader:
             " generate, the more likely\nyou are to get a good summary.\nThe more"
             " tokens you use, the more likely you are to get a good summary.\nThe more"
             " tokens you use, the longer it will take to generate\nthe summary. The"
-            " more summaries you generate, the more it will cost you.\n\nNOTE: as of"
-            " 5/22/23 GPT-4 32k is not commonly available.\nAlso note: older OpenAI"
-            " Instruct models mostly produce garbage but try out Text Davinci 003, it's"
-            " not bad.\nAnthropic's 100k models can usually handle entire Reddit"
-            " threads without recursion"
+            " more summaries you generate, the more it will cost you."
         ),
     )
 

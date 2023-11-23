@@ -17,7 +17,7 @@ from utils.streamlit_decorators import expander_decorator
 config = ConfigLoader.get_config()
 
 
-def model_selection(col) -> Tuple[str, str, int, int, int]:
+def model_selection(col) -> Tuple[str, str, int, int, int, int]:
     """Render the model selection and return the selected model and settings."""
     model_types = {
         OPEN_AI_CHAT_TYPE: OPEN_AI_CHAT_MODELS,
@@ -60,6 +60,11 @@ def model_selection(col) -> Tuple[str, str, int, int, int]:
         col.number_input(
             "Max Token Length", value=selected_model_config["max_token_length"], step=1
         ),
+        col.number_input(
+            "Max Context Length",
+            value=selected_model_config.get("max_context_length", 0),
+            step=1,
+        ),
     )
 
 
@@ -82,6 +87,7 @@ def render_settings() -> GenerateSettings:
         chunk_token_length,
         max_number_of_summaries,
         max_token_length,
+        max_context_length,
     ) = model_selection(col1)
 
     with col2:
@@ -95,4 +101,5 @@ def render_settings() -> GenerateSettings:
         "max_token_length": max_token_length,
         "selected_model": selected_model,
         "selected_model_type": selected_model_type,
+        "max_context_length": max_context_length,
     }

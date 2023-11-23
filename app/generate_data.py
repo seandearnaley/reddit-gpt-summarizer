@@ -136,24 +136,12 @@ def generate_summary_data(
             reddit_data["comments"],
         )
 
-        if not comments:
-            comments = "No Comments"
+        comments = comments or "No Comments"
+        groups = group_bodies_into_chunks(comments, settings["chunk_token_length"]) or [
+            "No Comments"
+        ]
+        selftext = selftext or "No selftext"
 
-        groups = group_bodies_into_chunks(comments, settings["chunk_token_length"])
-
-        if len(groups) == 0:
-            groups = ["No Comments"]
-
-        if (selftext is None) or (len(selftext) == 0):
-            selftext = "No selftext"
-
-        groups = (
-            group_bodies_into_chunks(comments, settings["chunk_token_length"])
-            if len(groups) > 0
-            else ["No Comments"]
-        )
-
-        # Check if selftext is too long, and summarize if necessary
         init_prompt = (
             summarize_summary(selftext, settings, title)
             if len(selftext) > estimate_word_count(settings["max_token_length"])
@@ -168,17 +156,57 @@ def generate_summary_data(
             progress_callback=progress_callback,
         )
 
-        output = ""
-        for i, summary in enumerate(summaries):
-            prompt = prompts[i]
-            output += f"============\nSUMMARY COUNT: {i}\n============\n"
-            output += f"PROMPT: {prompt}\n\n{summary}\n===========================\n\n"
+        output = "\n".join(
+            f"============\nSUMMARY COUNT: {i}\n"
+            f"============\nPROMPT: {prompt}\n\n"
+            f"{summary}\n===========================\n"
+            for i, (prompt, summary) in enumerate(zip(prompts, summaries))
+        )
 
         return output
 
     except Exception as ex:
         logger.error(f"Error generating summary data: {ex}")
         raise
+
+
+@Logger.log
+def generate_complete_prompt(
+    comment_group: str, title: str, settings: GenerateSettings, subreddit: str
+) -> str:
+    """Generate the complete prompt."""
+    return (
+        f"{settings['query']}\n\n"
+        f"```Title: {title}\n\n"
+        f"<Comments subreddit='r/{subreddit}'>\n"
+        f"{comment_group}\n</Comments>\n```"
+    )
+
+
+@Logger.log
+def adjust_prompt_length(
+    comment_group: str,
+    title: str,
+    settings: GenerateSettings,
+    max_context_length: int,
+    subreddit: str,
+) -> str:
+    """Ensure the prompt does not exceed the max_context_length."""
+    complete_prompt = generate_complete_prompt(
+        comment_group, title, settings, subreddit
+    )
+    prompt_token_count = num_tokens_from_string(
+        complete_prompt, settings["selected_model_type"]
+    )
+    while prompt_token_count > max_context_length and comment_group:
+        comment_group = comment_group[:-1]
+        complete_prompt = generate_complete_prompt(
+            comment_group, title, settings, subreddit
+        )
+        prompt_token_count = num_tokens_from_string(
+            complete_prompt, settings["selected_model_type"]
+        )
+    return complete_prompt
 
 
 @Logger.log
@@ -194,29 +222,25 @@ def generate_summaries(
     prompts: List[str] = []
     summaries: List[str] = []
     total_groups = len(groups)
-    system_role, query, max_tokens = (
-        settings["system_role"],
-        settings["query"],
-        settings["max_token_length"],
-    )
+    max_context_length = settings["max_context_length"]
 
     for i, comment_group in enumerate(groups):
-        complete_prompt = (
-            f"{query}\n\n"
-            + "```"
-            + f"Title: {summarize_summary(prompt, settings) if i > 0 else prompt}\n\n"
-            + f'<Comments subreddit="r/{subreddit}">\n{comment_group}\n</Comments>\n'
-            + "```"
+        title = summarize_summary(prompt, settings) if i > 0 else prompt
+
+        complete_prompt = adjust_prompt_length(
+            comment_group, title, settings, max_context_length, subreddit
         )
 
         prompts.append(complete_prompt)
 
+        max_tokens = min(
+            max_context_length
+            - num_tokens_from_string(complete_prompt, settings["selected_model_type"]),
+            settings["max_token_length"],
+        )
         summary = complete_text(
             prompt=complete_prompt,
-            max_tokens=max_tokens
-            - num_tokens_from_string(complete_prompt, settings["selected_model_type"])
-            - num_tokens_from_string(system_role, settings["selected_model_type"])
-            - 4,  # figure out the 4
+            max_tokens=max_tokens,
             settings=settings,
         )
 

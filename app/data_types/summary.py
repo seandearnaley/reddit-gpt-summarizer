@@ -21,6 +21,7 @@ class GenerateSettings(TypedDict):
     selected_model: str
     system_role: str
     selected_model_type: str
+    max_context_length: int  # Added this line
 
 
 class ModelConfig(TypedDict):
