@@ -219,36 +219,61 @@ def generate_summaries(
 ) -> Tuple[List[str], List[str]]:
     """Generate the summaries from the prompts."""
 
-    prompts: List[str] = []
-    summaries: List[str] = []
     total_groups = len(groups)
     max_context_length = settings["max_context_length"]
 
-    for i, comment_group in enumerate(groups):
-        title = summarize_summary(prompt, settings) if i > 0 else prompt
-
-        complete_prompt = adjust_prompt_length(
-            comment_group, title, settings, max_context_length, subreddit
+    summaries = [
+        generate_summary(
+            i,
+            comment_group,
+            prompt,
+            settings,
+            max_context_length,
+            subreddit,
+            progress_callback,
+            total_groups,
         )
+        for i, comment_group in enumerate(groups)
+    ]
 
-        prompts.append(complete_prompt)
+    prompts = [summary[0] for summary in summaries]
+    summaries = [summary[1] for summary in summaries]
 
-        max_tokens = min(
-            max_context_length
-            - num_tokens_from_string(complete_prompt, settings["selected_model_type"]),
-            settings["max_token_length"],
-        )
-        summary = complete_text(
-            prompt=complete_prompt,
-            max_tokens=max_tokens,
-            settings=settings,
-        )
-
-        if progress_callback:
-            progress = int(((i + 1) / total_groups) * 100)
-            progress_callback(progress, i + 1, complete_prompt, summary)
-
-        prompt = summary
-
-        summaries.append(summary)
     return prompts, summaries
+
+
+@Logger.log
+def generate_summary(
+    i: int,
+    comment_group: str,
+    prompt: str,
+    settings: GenerateSettings,
+    max_context_length: int,
+    subreddit: str = "",
+    progress_callback: ProgressCallback = None,
+    total_groups: int = 1,
+) -> Tuple[str, str]:
+    """Generate a single summary."""
+
+    title = summarize_summary(prompt, settings) if i > 0 else prompt
+
+    complete_prompt = adjust_prompt_length(
+        comment_group, title, settings, max_context_length, subreddit
+    )
+
+    max_tokens = min(
+        max_context_length
+        - num_tokens_from_string(complete_prompt, settings["selected_model_type"]),
+        settings["max_token_length"],
+    )
+    summary = complete_text(
+        prompt=complete_prompt,
+        max_tokens=max_tokens,
+        settings=settings,
+    )
+
+    if progress_callback:
+        progress = int(((i + 1) / total_groups) * 100)
+        progress_callback(progress, i + 1, complete_prompt, summary)
+
+    return complete_prompt, summary
