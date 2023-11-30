@@ -2,8 +2,6 @@
 This script will take a reddit URL and use OpenAI's GPT-3 model to generate
 a summary of the reddit thread.
 """
-# Import necessary modules
-
 import os
 from typing import Optional, TypedDict
 
@@ -30,6 +28,11 @@ class EnvVarsLoader:
     """Class for loading environment variables."""
 
     _env_vars = None
+
+    @staticmethod
+    def validate_env_vars(env_vars: EnvVars) -> None:
+        """Validate the environment variables."""
+        # Add your validation logic here
 
     @staticmethod
     @Logger.log
@@ -83,6 +86,8 @@ class EnvVarsLoader:
             "REDDIT_USER_AGENT": reddit_user_agent,
             "ANTHROPIC_API_KEY": anthropic_api_key,
         }
+
+        EnvVarsLoader.validate_env_vars(env_vars)
 
         EnvVarsLoader._env_vars = env_vars
 

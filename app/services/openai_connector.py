@@ -5,8 +5,9 @@ from config import OPEN_AI_CHAT_TYPE, ConfigLoader
 from data_types.summary import GenerateSettings
 from env import EnvVarsLoader
 from log_tools import Logger
-from openai.openai_object import OpenAIObject
+from openai import OpenAI
 
+client = OpenAI()
 config = ConfigLoader.get_config()
 app_logger = Logger.get_app_logger()
 env_vars = EnvVarsLoader.load_env()
@@ -25,7 +26,7 @@ def complete_openai_text(
     Use OpenAI's GPT model to complete text based on the given prompt.
 
     Args:
-        prompt (str): The prompt to use as the starting point for text completion.
+        prompt (str): The prompt to use as the starting point for text completion. # noqa: E501
         max_tokens (int, optional): The maximum number of tokens to generate in the
         response.
         settings (GenerateSettings): The settings to use for generating the text.
@@ -43,7 +44,7 @@ def complete_openai_text(
         }
 
         response = (
-            openai.ChatCompletion.create(
+            openai.chat.completions.create(
                 **common_args,
                 messages=[
                     {"role": "system", "content": settings["system_role"]},
@@ -51,14 +52,14 @@ def complete_openai_text(
                 ],
             )
             if is_chat
-            else openai.Completion.create(
+            else openai.completions.create(
                 **common_args,
                 prompt=prompt,
             )
         )
 
-        if not isinstance(response, OpenAIObject):
-            raise ValueError("Invalid Response")
+        # if not isinstance(response, OpenAIObject):
+        #     raise ValueError("Invalid Response")
 
         if response.choices:
             content = (

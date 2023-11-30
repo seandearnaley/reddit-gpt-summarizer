@@ -13,6 +13,7 @@ from typing import Any, Dict
 import openai
 from dotenv import load_dotenv
 from pyrate_limiter import Duration, Limiter, RequestRate
+from services.openai_connector import complete_openai_text
 from utils.llm_utils import estimate_word_count, num_tokens_from_string
 
 # Constants
@@ -75,8 +76,7 @@ def recursive_summarization(
     Recursive summarization function.
     """
     summary_string = (
-        f"```{prefix_text}```\n\n"
-        + "new text:\n\n```"
+        f"```{prefix_text}```\n\n" + "new text:\n\n```"
         # + f"{estimate_word_count(max_token_length)} words:\n"
         + chunk_text
         + "```\n\nsummarize then append to last text, write close to [replace] "
@@ -88,10 +88,9 @@ def recursive_summarization(
         "[replace]", str(estimate_word_count(summary_size))
     )
 
-    response: Dict[str, Any] = openai.Completion.create(  # type: ignore
+    response: Dict[str, Any] = openai.completions.create(  # type: ignore
         model=GPT_MODEL,
         prompt=summary_string,
-        frequency_penalty=0.5,
         max_tokens=MAX_TOKENS
         - num_tokens_from_string(summary_string),  # eg 4000-(len chunk+len string)
     )
@@ -124,7 +123,15 @@ def summarize_text(
         print("chunk=", chunk)
 
         limiter.try_acquire("summarize_text")
-        summary = recursive_summarization(summary_size, chunk, summary)
+        summary = complete_openai_text(
+            chunk,
+            summary_size,
+            settings={
+                "selected_model": GPT_MODEL,
+                "selected_model_type": "chat",
+                "system_role": "Please summarize the following text:",
+            },
+        )
         result += summary
 
     num_tokens = num_tokens_from_string(result)
@@ -162,7 +169,7 @@ def cleanup_summary(text: str, summary_size: int, max_tokens: int = MAX_TOKENS) 
         "[replace]", str(estimate_word_count(summary_size))
     )
 
-    response: Dict[str, Any] = openai.Completion.create(  # type: ignore
+    response: Dict[str, Any] = openai.completions.create(  # type: ignore
         model="text-davinci-003",
         prompt=cleanup_prompt,
         best_of=3,
