@@ -9,7 +9,6 @@ readme = "README.md"
 python = "^3.11"
 requests = "^2.28.2"
 openai = "^1.1.0"
-python-dotenv = "^0.21.1"
 tiktoken = "^0.2.0"
 streamlit = "^1.24.1"
 pyrate-limiter = "^2.10.0"
@@ -24,6 +23,7 @@ types-requests = "^2.28.11.8"
 black = "^23.1.0"
 debugpy = "^1.6.6"
 pylint = "^2.16.2"
+python-dotenv = "^0.21.1"
 
 [build-system]
 requires = ["poetry-core"]
