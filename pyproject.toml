@@ -14,7 +14,7 @@ streamlit = "^1.24.1"
 pyrate-limiter = "^2.10.0"
 praw = "^7.7.1"
 colorlog = "^6.7.0"
-anthropic = "^0.3.4"
+anthropic = "^0.19.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"

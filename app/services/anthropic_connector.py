@@ -1,6 +1,6 @@
 """Anthropic Connector"""
 
-from anthropic import AI_PROMPT, HUMAN_PROMPT, Anthropic
+import anthropic
 from config import ConfigLoader
 from data_types.summary import GenerateSettings
 from env import EnvVarsLoader
@@ -31,14 +31,24 @@ def complete_anthropic_text(
     """
 
     try:
-        anthropic_client = Anthropic(api_key=env_vars["ANTHROPIC_API_KEY"])
-        response = anthropic_client.completions.create(
-            prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
-            stop_sequences=[HUMAN_PROMPT],
+        anthropic_client = anthropic.Anthropic(api_key=env_vars["ANTHROPIC_API_KEY"])
+        message = anthropic_client.messages.create(
             model=settings["selected_model"],
-            max_tokens_to_sample=max_tokens,
+            max_tokens=max_tokens,
+            messages=[
+                {"role": "user", "content": prompt},
+                # Optionally, you can add an assistant's last turn here if needed
+            ],
         )
 
-        return response.completion.strip()
+        # Assuming the response is a list of dictionaries with "type" and "text"
+        # Extracting the text from the first item in the response list
+        if message.content and isinstance(message.content, list):
+            response_text = next(
+                (item.text for item in message.content if item.type == "text"), ""
+            )
+            return response_text.strip()
+        else:
+            return "No response received."
     except Exception as err:  # pylint: disable=broad-except
         return f"error: {err}"

@@ -1,5 +1,21 @@
 [
   {
+    "name": "Claude v3 claude-3-sonnet-20240229",
+    "id": "claude-3-sonnet-20240229",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 4096,
+    "max_context_length": 200000
+  },
+  {
+    "name": "Claude v3 claude-3-opus-20240229",
+    "id": "claude-3-opus-20240229",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 4096,
+    "max_context_length": 200000
+  },
+  {
     "name": "Claude v2.1",
     "id": "claude-2.1",
     "default_chunk_token_length": 50000,
