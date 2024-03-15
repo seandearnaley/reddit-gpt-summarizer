@@ -40,13 +40,15 @@ def complete_anthropic_text(
 
     try:
         anthropic_client = anthropic.Anthropic(api_key=env_vars["ANTHROPIC_API_KEY"])
-        message = anthropic_client.messages.create(
+        messagex = anthropic_client.messages.create(
             model=settings["selected_model"],
             max_tokens=max_tokens,
             messages=[
                 {"role": "user", "content": prompt},
                 # Optionally, you can add an assistant's last turn here if needed
             ],
+
+            
         )
 
         # Assuming the response is a list of dictionaries with "type" and "text"
