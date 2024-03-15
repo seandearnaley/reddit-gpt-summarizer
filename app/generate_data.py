@@ -1,11 +1,12 @@
 """data functions for Reddit Scraper project."""
+
 import logging
 import re
 from datetime import datetime
 from typing import Any, Callable, List, Optional, Tuple
 
 import praw  # type: ignore
-from config import ConfigLoader
+from config import ConfigVars
 from data_types.summary import GenerateSettings, RedditData
 from env import EnvVarsLoader
 from llm_handler import complete_text
@@ -17,7 +18,7 @@ from utils.llm_utils import (
 )
 from utils.streamlit_decorators import spinner_decorator
 
-config = ConfigLoader.get_config()
+config = ConfigVars()
 env_vars = EnvVarsLoader.load_env()
 
 app_logger = Logger.get_app_logger()
@@ -29,7 +30,7 @@ def summarize_summary(
     selftext: str,
     settings: GenerateSettings,
     title: Optional[str] = None,
-    max_tokens: int = config["MAX_BODY_TOKEN_SIZE"],
+    max_tokens: int = config.MAX_BODY_TOKEN_SIZE,
 ) -> str:
     """Summarize the response."""
 

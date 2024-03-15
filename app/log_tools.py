@@ -7,7 +7,7 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Optional, TypeVar
 
-from config import ConfigLoader
+from config import ConfigVars
 
 T = TypeVar("T")
 
@@ -15,9 +15,10 @@ T = TypeVar("T")
 class Logger:
     """Class to handle logging configuration."""
 
-    _config = ConfigLoader.get_config()
-    _log_name = _config["LOG_NAME"]
-    _log_file_path = os.path.abspath(_config["LOG_FILE_PATH"])
+    _config = ConfigVars()
+
+    _log_name = _config.LOG_NAME
+    _log_file_path = os.path.abspath(_config.LOG_FILE_PATH)
 
     # Create the directory for log files if it doesn't exist
     if not os.path.exists(os.path.dirname(_log_file_path)):
@@ -29,7 +30,7 @@ class Logger:
             "color": {
                 "()": "colorlog.ColoredFormatter",
                 "format": "%(log_color)s%(levelname)s:%(message)s",
-                "log_colors": _config["LOG_COLORS"],
+                "log_colors": _config.LOG_COLORS,
             }
         },
         "handlers": {

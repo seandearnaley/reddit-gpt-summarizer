@@ -1,12 +1,12 @@
 """Anthropic Connector"""
 
 import anthropic
-from config import ConfigLoader
+from config import ConfigVars
 from data_types.summary import GenerateSettings
 from env import EnvVarsLoader
 from log_tools import Logger
 
-config = ConfigLoader.get_config()
+config = ConfigVars()
 app_logger = Logger.get_app_logger()
 env_vars = EnvVarsLoader.load_env()
 
