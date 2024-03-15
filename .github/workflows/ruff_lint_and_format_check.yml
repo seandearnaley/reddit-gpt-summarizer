@@ -24,7 +24,7 @@ jobs:
       - name: Extract Ruff version and set as output
         id: ruff-version
         run: |
-          version=$(toml get pyproject.toml tool.poetry.group.dev.dependencies.ruff --default 'latest')
+          version=$(toml get pyproject.toml tool.poetry.group.dev.dependencies.ruff 2>/dev/null || echo 'latest')
           echo "ruff_version=$version" >> $GITHUB_OUTPUT
 
       - name: Install Ruff using the extracted version
