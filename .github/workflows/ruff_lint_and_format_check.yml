@@ -21,21 +21,20 @@ jobs:
       - name: Install toml-cli
         run: pip install toml-cli
 
-      - name: Extract Ruff version from pyproject.toml
+      - name: Extract Ruff version and set as output
         id: ruff-version
-        run: echo "::set-output name=version::$(toml get pyproject.toml tool.poetry.group.dev.dependencies.ruff --default 'latest')"
+        run: |
+          version=$(toml get pyproject.toml tool.poetry.group.dev.dependencies.ruff --default 'latest')
+          echo "ruff_version=$version" >> $GITHUB_OUTPUT
 
-      - name: Install Ruff
-        run: pip install ruff==${{ steps.ruff-version.outputs.version }}
+      - name: Install Ruff using the extracted version
+        run: pip install ruff==${{ steps.ruff-version.outputs.ruff_version }}
 
       - name: Get changed Python files
         id: changed-files
         uses: tj-actions/changed-files@v43
         with:
           files: "**.py"
-
-      - name: Install Ruff
-        run: pip install ruff
 
       - name: Run Ruff Format Check
         if: steps.changed-files.outputs.all_changed_files != ''
