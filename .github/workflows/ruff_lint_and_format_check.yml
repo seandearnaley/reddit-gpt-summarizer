@@ -1,4 +1,4 @@
-name: Ruff Lint and Format check
+name: Ruff Lint and Format Check
 
 on:
   pull_request:
@@ -8,13 +8,29 @@ on:
 jobs:
   ruff-check:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install toml-cli
+        run: pip install toml-cli
+
+      - name: Extract Ruff version from pyproject.toml
+        id: ruff-version
+        run: echo "::set-output name=version::$(toml get pyproject.toml tool.poetry.group.dev.dependencies.ruff --default 'latest')"
+
+      - name: Install Ruff
+        run: pip install ruff==${{ steps.ruff-version.outputs.version }}
 
       - name: Get changed Python files
         id: changed-files
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@v43
         with:
           files: "**.py"
 
@@ -23,8 +39,22 @@ jobs:
 
       - name: Run Ruff Format Check
         if: steps.changed-files.outputs.all_changed_files != ''
+        id: ruff-format-check
         run: ruff format --check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
+        continue-on-error: true
 
       - name: Run Ruff Lint Check
         if: steps.changed-files.outputs.all_changed_files != ''
+        id: ruff-lint-check
         run: ruff check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
+        continue-on-error: true
+
+      - name: Report Ruff Check Status
+        if: steps.changed-files.outputs.all_changed_files != ''
+        run: |
+          if [ ${{ steps.ruff-format-check.outcome }} == 'failure' ] || [ ${{ steps.ruff-lint-check.outcome }} == 'failure' ]; then
+            echo "Ruff checks failed. Please fix the issues and re-submit the pull request."
+            exit 1
+          else
+            echo "Ruff checks passed successfully!"
+          fi
