@@ -11,6 +11,14 @@ app_logger = Logger.get_app_logger()
 env_vars = EnvVarsLoader.load_env()
 
 
+
+
+
+
+
+
+
+
 @Logger.log
 def complete_anthropic_text(
     prompt: str,
