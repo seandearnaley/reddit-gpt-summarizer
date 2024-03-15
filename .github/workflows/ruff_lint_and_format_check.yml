@@ -1,0 +1,30 @@
+name: Ruff Lint and Format check
+
+on:
+  pull_request:
+    paths:
+      - "**.py"
+
+jobs:
+  ruff-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get changed Python files
+        id: changed-files
+        uses: tj-actions/changed-files@v41
+        with:
+          files: "**.py"
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff Format Check
+        if: steps.changed-files.outputs.all_changed_files != ''
+        run: ruff format --check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
+
+      - name: Run Ruff Lint Check
+        if: steps.changed-files.outputs.all_changed_files != ''
+        run: ruff check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
