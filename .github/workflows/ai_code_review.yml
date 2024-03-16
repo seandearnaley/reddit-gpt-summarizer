@@ -16,12 +16,12 @@ jobs:
         with:
           fetch-depth: 0
       - name: Fetch main branch
-        run: git fetch origin main:main
+        run: git fetch origin master:master
 
       - name: Generate Git Diff
         id: git_diff
         run: |
-          git diff --name-only -U10 origin/main...HEAD > diff.txt
+          git diff --name-only -U10 master...HEAD > diff.txt
           echo "::set-output name=diff::$(cat diff.txt)"
 
       - name: AI Code Review
