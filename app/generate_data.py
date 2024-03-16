@@ -41,7 +41,9 @@ def summarize_summary(
     )
 
     out_text = complete_text(
-        prompt=summary_string, max_tokens=max_tokens, settings=settings,
+        prompt=summary_string,
+        max_tokens=max_tokens,
+        settings=settings,
     )
 
     if title is None:
@@ -65,7 +67,9 @@ def get_comments(comment: Any, level: int = 0) -> str:
     result += f"{created_date} [{author_name}] {comment.body}\n"
 
     for reply in sorted(
-        comment.replies, key=lambda reply: reply.created_utc, reverse=True,
+        comment.replies,
+        key=lambda reply: reply.created_utc,
+        reverse=True,
     ):
         result += "    " * level
         result += "> " + get_comments(reply, level + 1)
@@ -112,7 +116,10 @@ def get_reddit_praw(
             comment_string += get_comments(comment)
 
         return RedditData(
-            title=title, selftext=selftext, subreddit=subreddit, comments=comment_string,
+            title=title,
+            selftext=selftext,
+            subreddit=subreddit,
+            comments=comment_string,
         )
 
     except Exception as ex:  # pylint: disable=broad-except
@@ -174,7 +181,10 @@ def generate_summary_data(
 
 @Logger.log
 def generate_complete_prompt(
-    comment_group: str, title: str, settings: GenerateSettings, subreddit: str,
+    comment_group: str,
+    title: str,
+    settings: GenerateSettings,
+    subreddit: str,
 ) -> str:
     """Generate the complete prompt."""
     return (
@@ -195,18 +205,26 @@ def adjust_prompt_length(
 ) -> str:
     """Ensure the prompt does not exceed the max_context_length."""
     complete_prompt = generate_complete_prompt(
-        comment_group, title, settings, subreddit,
+        comment_group,
+        title,
+        settings,
+        subreddit,
     )
     prompt_token_count = num_tokens_from_string(
-        complete_prompt, settings["selected_model_type"],
+        complete_prompt,
+        settings["selected_model_type"],
     )
     while prompt_token_count > max_context_length and comment_group:
         comment_group = comment_group[:-1]
         complete_prompt = generate_complete_prompt(
-            comment_group, title, settings, subreddit,
+            comment_group,
+            title,
+            settings,
+            subreddit,
         )
         prompt_token_count = num_tokens_from_string(
-            complete_prompt, settings["selected_model_type"],
+            complete_prompt,
+            settings["selected_model_type"],
         )
     return complete_prompt
 
@@ -260,7 +278,11 @@ def generate_summary(
     title = summarize_summary(prompt, settings) if i > 0 else prompt
 
     complete_prompt = adjust_prompt_length(
-        comment_group, title, settings, max_context_length, subreddit,
+        comment_group,
+        title,
+        settings,
+        max_context_length,
+        subreddit,
     )
 
     max_tokens = min(

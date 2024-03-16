@@ -3,7 +3,6 @@ This module contains tools for Streamlit.
 """
 # Import necessary modules
 
-
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar

@@ -65,7 +65,9 @@ class Logger:
 
     @classmethod
     def log(
-        cls, func: Callable[..., T], logger: logging.Logger | None = None,
+        cls,
+        func: Callable[..., T],
+        logger: logging.Logger | None = None,
     ) -> Callable[..., T]:
         """Decorator to log function calls and return values."""
         if logger is None:

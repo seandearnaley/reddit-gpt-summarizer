@@ -1,5 +1,6 @@
 # app/utils/common.py
 """Utility functions for the Reddit Scraper project."""
+
 import os
 import re
 from datetime import datetime

@@ -47,7 +47,10 @@ def render_output(
         my_bar = st.progress(0, text=progress_text)
 
         def progress_callback(
-            progress: int, idx: int, prompt: str, summary: str,
+            progress: int,
+            idx: int,
+            prompt: str,
+            summary: str,
         ) -> None:
             my_bar.progress(progress, text=progress_text)
             with st.expander(f"Prompt {idx}"):

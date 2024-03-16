@@ -2,6 +2,7 @@
 This script will take a reddit URL and use OpenAI's GPT-3 model to generate
 a summary of the reddit thread.
 """
+
 import os
 from typing import TypedDict
 

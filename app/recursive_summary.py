@@ -70,13 +70,16 @@ def write_text_file(text: str, filename: str) -> str:
 
 
 def recursive_summarization(
-    summary_size: int, chunk_text: str, prefix_text: str = "",
+    summary_size: int,
+    chunk_text: str,
+    prefix_text: str = "",
 ) -> str:
     """
     Recursive summarization function.
     """
     summary_string = (
-        f"```{prefix_text}```\n\n" + "new text:\n\n```"
+        f"```{prefix_text}```\n\n"
+        + "new text:\n\n```"
         # + f"{estimate_word_count(max_token_length)} words:\n"
         + chunk_text
         + "```\n\nsummarize then append to last text, write close to [replace] "
@@ -85,7 +88,8 @@ def recursive_summarization(
     )
 
     summary_string = summary_string.replace(
-        "[replace]", str(estimate_word_count(summary_size)),
+        "[replace]",
+        str(estimate_word_count(summary_size)),
     )
 
     response: dict[str, Any] = openai.completions.create(  # type: ignore
@@ -104,7 +108,9 @@ def recursive_summarization(
 
 
 def summarize_text(
-    text: str, max_token_length: int, max_tokens: int = MAX_TOKENS,
+    text: str,
+    max_token_length: int,
+    max_tokens: int = MAX_TOKENS,
 ) -> str:
     """
     Summarize the prompt using GPT-3.
@@ -166,7 +172,8 @@ def cleanup_summary(text: str, summary_size: int, max_tokens: int = MAX_TOKENS) 
     )
 
     cleanup_prompt = cleanup_prompt.replace(
-        "[replace]", str(estimate_word_count(summary_size)),
+        "[replace]",
+        str(estimate_word_count(summary_size)),
     )
 
     response: dict[str, Any] = openai.completions.create(  # type: ignore

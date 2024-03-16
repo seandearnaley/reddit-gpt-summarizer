@@ -1,4 +1,5 @@
 """Test utils.py."""
+
 import os
 
 import tiktoken

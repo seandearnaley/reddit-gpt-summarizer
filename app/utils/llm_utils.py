@@ -1,4 +1,5 @@
-""" Utility functions for the Large Language Models. """
+"""Utility functions for the Large Language Models."""
+
 import math
 import re
 

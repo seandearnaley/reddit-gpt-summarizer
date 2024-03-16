@@ -1,6 +1,5 @@
 """This module contains the settings UI for the app."""
 
-
 import streamlit as st
 from config import (
     ANTHROPIC_AI_MODELS,
@@ -26,7 +25,8 @@ def model_selection(col) -> tuple[str, str, int, int, int, int]:
     }
 
     selected_model_type = col.radio(
-        "Select Model Type", options=list(model_types.keys()),
+        "Select Model Type",
+        options=list(model_types.keys()),
     )
 
     models = model_types[selected_model_type]
@@ -58,7 +58,9 @@ def model_selection(col) -> tuple[str, str, int, int, int, int]:
             step=1,
         ),
         col.number_input(
-            "Max Token Length", value=selected_model_config.max_token_length, step=1,
+            "Max Token Length",
+            value=selected_model_config.max_token_length,
+            step=1,
         ),
         col.number_input(
             "Max Context Length",
@@ -76,7 +78,9 @@ def render_settings() -> GenerateSettings:
 
     system_role: str = st.text_input("System Role", config.DEFAULT_SYSTEM_ROLE)
     query_text: str = st.text_area(
-        "Instructions", config.DEFAULT_QUERY_TEXT, height=250,
+        "Instructions",
+        config.DEFAULT_QUERY_TEXT,
+        height=250,
     )
 
     col1, col2 = st.columns(2)

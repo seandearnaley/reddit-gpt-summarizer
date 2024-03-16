@@ -1,4 +1,5 @@
 """Handler for the LLM app."""
+
 from config import ANTHROPIC_AI_TYPE
 from data_types.summary import GenerateSettings
 from log_tools import Logger
