@@ -12,7 +12,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4.1.2
 
-      - name: OpenAI Code Review
+      - name: Print working directory
+        run: echo "The working directory is $GITHUB_WORKSPACE"
+        # This step is optional and for debugging purposes.
+
+      - name: AI Code Review
         uses: seandearnaley/ai-code-reviewer@v1
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
