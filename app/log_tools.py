@@ -3,9 +3,10 @@
 import logging
 import logging.config
 import os
+from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, TypeVar
 
 from config import ConfigVars
 
@@ -31,7 +32,7 @@ class Logger:
                 "()": "colorlog.ColoredFormatter",
                 "format": "%(log_color)s%(levelname)s:%(message)s",
                 "log_colors": _config.LOG_COLORS,
-            }
+            },
         },
         "handlers": {
             "file": {
@@ -48,7 +49,7 @@ class Logger:
             _log_name: {
                 "handlers": ["file", "console"],
                 "level": logging.INFO,
-            }
+            },
         },
     }
 
@@ -56,7 +57,7 @@ class Logger:
     try:
         logging.config.dictConfig(_logging_config)
     except ValueError as e:
-        print(f"Error occurred during logging configuration: {str(e)}")
+        print(f"Error occurred during logging configuration: {e!s}")
         raise
 
     app_logger = logging.getLogger(_log_name)
@@ -64,7 +65,9 @@ class Logger:
 
     @classmethod
     def log(
-        cls, func: Callable[..., T], logger: Optional[logging.Logger] = None
+        cls,
+        func: Callable[..., T],
+        logger: logging.Logger | None = None,
     ) -> Callable[..., T]:
         """Decorator to log function calls and return values."""
         if logger is None:

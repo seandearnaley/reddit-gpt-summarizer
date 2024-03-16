@@ -1,4 +1,5 @@
 """Test utils.py."""
+
 import os
 
 import tiktoken
@@ -38,6 +39,6 @@ def test_save_output() -> None:
     result = save_output(title, output)
 
     assert os.path.exists(result)
-    with open(result, "r", encoding="utf-8") as fileout:
+    with open(result, encoding="utf-8") as fileout:
         assert fileout.read() == output
     os.remove(result)

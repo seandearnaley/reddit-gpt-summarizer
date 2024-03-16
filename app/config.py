@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
@@ -39,7 +40,7 @@ class ConfigVars(BaseModel):
     DEFAULT_MAX_TOKEN_LENGTH: int = 4096  # max number of tokens for GPT-3
     LOG_FILE_PATH: str = "./logs/log.log"
     LOG_COLORS: LogColors = LogColors()
-    REDDIT_URL: str = "https://www.reddit.com/r/OutOfTheLoop/comments/147fcdf/whats_going_on_with_subreddits_going_private_on/"  # noqa: E501
+    REDDIT_URL: str = "https://www.reddit.com/r/OutOfTheLoop/comments/147fcdf/whats_going_on_with_subreddits_going_private_on/"
     LOG_NAME: str = "reddit_gpt_summarizer_log"
     APP_TITLE: str = "Reddit Thread GPT Summarizer"
     MAX_BODY_TOKEN_SIZE: int = 500
@@ -69,7 +70,7 @@ class ConfigVars(BaseModel):
 
 def load_models_from_json(file_path: str) -> list[ModelConfig]:
     """Load models from a JSON file."""
-    with open(file_path, "r", encoding="utf-8") as json_file:
+    with open(file_path, encoding="utf-8") as json_file:
         models_data = json.load(json_file)
     return [ModelConfig(**model_data) for model_data in models_data]
 
@@ -80,13 +81,13 @@ ANTHROPIC_AI_TYPE = "Anthropic Chat"
 
 # Load models from JSON files
 OPEN_AI_CHAT_MODELS = load_models_from_json(
-    "app/model_configs/open_ai_chat_models.json"
+    "app/model_configs/open_ai_chat_models.json",
 )
 OPEN_AI_INSTRUCT_MODELS = load_models_from_json(
-    "app/model_configs/open_ai_instruct_models.json"
+    "app/model_configs/open_ai_instruct_models.json",
 )
 ANTHROPIC_AI_MODELS = load_models_from_json(
-    "app/model_configs/anthropic_ai_models.json"
+    "app/model_configs/anthropic_ai_models.json",
 )
 
 

@@ -2,8 +2,9 @@
 
 import logging
 import re
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Optional
 
 import praw  # type: ignore
 from config import ConfigVars
@@ -29,7 +30,7 @@ ProgressCallback = Optional[Callable[[int, int, str, str], None]]
 def summarize_summary(
     selftext: str,
     settings: GenerateSettings,
-    title: Optional[str] = None,
+    title: str | None = None,
     max_tokens: int = config.MAX_BODY_TOKEN_SIZE,
 ) -> str:
     """Summarize the response."""
@@ -40,7 +41,9 @@ def summarize_summary(
     )
 
     out_text = complete_text(
-        prompt=summary_string, max_tokens=max_tokens, settings=settings
+        prompt=summary_string,
+        max_tokens=max_tokens,
+        settings=settings,
     )
 
     if title is None:
@@ -64,7 +67,9 @@ def get_comments(comment: Any, level: int = 0) -> str:
     result += f"{created_date} [{author_name}] {comment.body}\n"
 
     for reply in sorted(
-        comment.replies, key=lambda reply: reply.created_utc, reverse=True
+        comment.replies,
+        key=lambda reply: reply.created_utc,
+        reverse=True,
     ):
         result += "    " * level
         result += "> " + get_comments(reply, level + 1)
@@ -100,8 +105,8 @@ def get_reddit_praw(
         submission.comment_sort = "top"  # sort comments by score (upvotes - downvotes)
         submission.comments.replace_more(limit=None)
 
-        title: Optional[str] = submission.title
-        selftext: Optional[str] = submission.selftext
+        title: str | None = submission.title
+        selftext: str | None = submission.selftext
 
         if not title:
             raise ValueError("No title found in JSON")
@@ -111,7 +116,10 @@ def get_reddit_praw(
             comment_string += get_comments(comment)
 
         return RedditData(
-            title=title, selftext=selftext, subreddit=subreddit, comments=comment_string
+            title=title,
+            selftext=selftext,
+            subreddit=subreddit,
+            comments=comment_string,
         )
 
     except Exception as ex:  # pylint: disable=broad-except
@@ -139,7 +147,7 @@ def generate_summary_data(
 
         comments = comments or "No Comments"
         groups = group_bodies_into_chunks(comments, settings["chunk_token_length"]) or [
-            "No Comments"
+            "No Comments",
         ]
         selftext = selftext or "No selftext"
 
@@ -161,7 +169,7 @@ def generate_summary_data(
             f"============\nSUMMARY COUNT: {i}\n"
             f"============\nPROMPT: {prompt}\n\n"
             f"{summary}\n===========================\n"
-            for i, (prompt, summary) in enumerate(zip(prompts, summaries))
+            for i, (prompt, summary) in enumerate(zip(prompts, summaries, strict=False))
         )
 
         return output
@@ -173,7 +181,10 @@ def generate_summary_data(
 
 @Logger.log
 def generate_complete_prompt(
-    comment_group: str, title: str, settings: GenerateSettings, subreddit: str
+    comment_group: str,
+    title: str,
+    settings: GenerateSettings,
+    subreddit: str,
 ) -> str:
     """Generate the complete prompt."""
     return (
@@ -194,18 +205,26 @@ def adjust_prompt_length(
 ) -> str:
     """Ensure the prompt does not exceed the max_context_length."""
     complete_prompt = generate_complete_prompt(
-        comment_group, title, settings, subreddit
+        comment_group,
+        title,
+        settings,
+        subreddit,
     )
     prompt_token_count = num_tokens_from_string(
-        complete_prompt, settings["selected_model_type"]
+        complete_prompt,
+        settings["selected_model_type"],
     )
     while prompt_token_count > max_context_length and comment_group:
         comment_group = comment_group[:-1]
         complete_prompt = generate_complete_prompt(
-            comment_group, title, settings, subreddit
+            comment_group,
+            title,
+            settings,
+            subreddit,
         )
         prompt_token_count = num_tokens_from_string(
-            complete_prompt, settings["selected_model_type"]
+            complete_prompt,
+            settings["selected_model_type"],
         )
     return complete_prompt
 
@@ -213,11 +232,11 @@ def adjust_prompt_length(
 @Logger.log
 def generate_summaries(
     settings: GenerateSettings,
-    groups: List[str],
+    groups: list[str],
     prompt: str,
     subreddit: str,
     progress_callback: ProgressCallback = None,
-) -> Tuple[List[str], List[str]]:
+) -> tuple[list[str], list[str]]:
     """Generate the summaries from the prompts."""
 
     total_groups = len(groups)
@@ -253,13 +272,17 @@ def generate_summary(
     subreddit: str = "",
     progress_callback: ProgressCallback = None,
     total_groups: int = 1,
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     """Generate a single summary."""
 
     title = summarize_summary(prompt, settings) if i > 0 else prompt
 
     complete_prompt = adjust_prompt_length(
-        comment_group, title, settings, max_context_length, subreddit
+        comment_group,
+        title,
+        settings,
+        max_context_length,
+        subreddit,
     )
 
     max_tokens = min(

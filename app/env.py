@@ -2,8 +2,9 @@
 This script will take a reddit URL and use OpenAI's GPT-3 model to generate
 a summary of the reddit thread.
 """
+
 import os
-from typing import Optional, TypedDict
+from typing import TypedDict
 
 from dotenv import load_dotenv
 from log_tools import Logger
@@ -18,8 +19,8 @@ class EnvVars(TypedDict):
     OPENAI_API_KEY: str
     REDDIT_CLIENT_ID: str
     REDDIT_CLIENT_SECRET: str
-    REDDIT_USERNAME: Optional[str]
-    REDDIT_PASSWORD: Optional[str]
+    REDDIT_USERNAME: str | None
+    REDDIT_PASSWORD: str | None
     REDDIT_USER_AGENT: str
     ANTHROPIC_API_KEY: str
 

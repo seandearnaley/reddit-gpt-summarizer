@@ -1,5 +1,6 @@
 # app/utils/common.py
 """Utility functions for the Reddit Scraper project."""
+
 import os
 import re
 from datetime import datetime
@@ -52,6 +53,6 @@ def is_valid_reddit_url(url: str) -> bool:
         r"reddit\.com\/"  # "reddit.com/"
         r"([a-zA-Z0-9-_]+\/)+"  # 1 or more letters, numbers, -'s, or _ followed by "/"
         r"[a-zA-Z0-9-_]+"  # 1 or more letters, numbers, -'s, or _'s
-        r"\/$"  # End of the string
+        r"\/$",  # End of the string
     )
     return bool(pattern.match(url))

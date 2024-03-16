@@ -1,1 +1,1 @@
-""" Utility functions for the reddit_gpt_summarizer package. """
+"""Utility functions for the reddit_gpt_summarizer package."""

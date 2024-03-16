@@ -1,4 +1,5 @@
 """Debugging tools."""
+
 # debugger.py
 import logging
 from typing import Any
@@ -68,7 +69,7 @@ class Debugger:
 
                 if streamlit.session_state.debugging is None:
                     logger.info(
-                        f">>> Remote debugging activated (host={host}, port={port}) <<<"
+                        f">>> Remote debugging activated (host={host}, port={port}) <<<",
                     )
                 streamlit.session_state.debugging = True
 
