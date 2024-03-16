@@ -22,7 +22,7 @@ jobs:
         id: git_diff
         run: |
           git diff --name-only -U10 master...HEAD > diff.txt
-          echo "::set-output name=diff::$(cat diff.txt)"
+          echo "diff=$(cat diff.txt)" >> $GITHUB_OUTPUT
 
       - name: AI Code Review
         uses: seandearnaley/ai-code-reviewer@v1
