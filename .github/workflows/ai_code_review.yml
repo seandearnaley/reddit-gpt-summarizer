@@ -21,7 +21,7 @@ jobs:
       - name: Generate Git Diff
         id: git_diff
         run: |
-          git diff --name-only -U10 master...HEAD > diff.txt
+          git diff -U10 master...HEAD > diff.txt
           # Base64 encode the diff to safely handle new lines
           DIFF_OUTPUT=$(base64 -w 0 diff.txt)
           echo "diff=$DIFF_OUTPUT" >> $GITHUB_OUTPUT
