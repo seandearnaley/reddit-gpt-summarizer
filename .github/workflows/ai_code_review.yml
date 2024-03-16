@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.1.2
+        with:
+          fetch-depth: 0
 
       - name: Print working directory
         run: echo "The working directory is $GITHUB_WORKSPACE"
