@@ -7,20 +7,20 @@ import logging
 from typing import Optional
 
 import streamlit as st
-from config import ConfigLoader
+from config import ConfigVars
 from data_types.summary import GenerateSettings
 from generate_data import generate_summary_data, get_reddit_praw
 from ui.settings import render_settings
 from utils.common import is_valid_reddit_url, replace_last_token_with_json, save_output
 
-config = ConfigLoader.get_config()
+config = ConfigVars()
 
 
 def render_input_box() -> Optional[str]:
     """
     Render the input box for the reddit URL and return its value.
     """
-    reddit_url: Optional[str] = st.text_area("Enter REDDIT URL:", config["REDDIT_URL"])
+    reddit_url: Optional[str] = st.text_area("Enter REDDIT URL:", config.REDDIT_URL)
     if not reddit_url:
         return None
 
@@ -100,7 +100,7 @@ def render_layout(
     Render the layout of the app.
     """
 
-    st.header(config["APP_TITLE"])
+    st.header(config.APP_TITLE)
 
     # Create an input box for url
     if not reddit_url:

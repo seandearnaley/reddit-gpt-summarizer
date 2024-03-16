@@ -1,25 +1,82 @@
 """Configuration file for the Reddit Summarizer."""
 
+from __future__ import annotations
+
 import json
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Dict, List, Tuple, TypeVar
+from typing import Any, Callable, TypeVar
 
-from data_types.summary import ConfigVars, ModelConfig
+from pydantic import BaseModel
 
-ModelList = List[ModelConfig]
+R = TypeVar("R")
+
+
+class ModelConfig(BaseModel):
+    name: str
+    id: str
+    default_chunk_token_length: int
+    default_number_of_summaries: int
+    max_token_length: int
+    max_context_length: int
+
+
+class LogColors(BaseModel):
+    DEBUG: str = "cyan"
+    INFO: str = "green"
+    WARNING: str = "yellow"
+    ERROR: str = "red"
+    CRITICAL: str = "bold_red"
+
+
+class ConfigVars(BaseModel):
+    ATTACH_DEBUGGER: bool = False
+    WAIT_FOR_CLIENT: bool = False
+    DEFAULT_DEBUG_PORT: int = 8765
+    DEBUGPY_HOST: str = "localhost"
+    DEFAULT_CHUNK_TOKEN_LENGTH: int = 2000
+    DEFAULT_NUMBER_OF_SUMMARIES: int = 3  # reduce this to 1 for testing
+    DEFAULT_MAX_TOKEN_LENGTH: int = 4096  # max number of tokens for GPT-3
+    LOG_FILE_PATH: str = "./logs/log.log"
+    LOG_COLORS: LogColors = LogColors()
+    REDDIT_URL: str = "https://www.reddit.com/r/OutOfTheLoop/comments/147fcdf/whats_going_on_with_subreddits_going_private_on/"  # noqa: E501
+    LOG_NAME: str = "reddit_gpt_summarizer_log"
+    APP_TITLE: str = "Reddit Thread GPT Summarizer"
+    MAX_BODY_TOKEN_SIZE: int = 500
+    DEFAULT_QUERY_TEXT: str = (
+        f"(Today's Date: {datetime.now().strftime('%Y-%b-%d')}) Revise and improve"
+        " the article by incorporating relevant information from the comments."
+        " Ensure the content is clear, engaging, and easy to understand for a"
+        " general audience. Avoid technical language, present facts objectively,"
+        " and summarize key comments from Reddit. Ensure that the overall"
+        " sentiment expressed in the comments is accurately reflected. Optimize"
+        " for highly original content. Don't be misled by joke comments. Ensure"
+        " it's written professionally, in a way that is appropriate for the"
+        " situation. Format the document using markdown and include links from the"
+        " original article/Reddit thread."
+    )
+    DEFAULT_SYSTEM_ROLE: str = "You are a helpful assistant."
+    HELP_TEXT: str = (
+        "#### Help\nEnter the instructions for the model to follow.\nIt will"
+        " generate a summary of the Reddit thread.\nThe trick here is to experiment"
+        " with token lengths and number\nof summaries. The more summaries you"
+        " generate, the more likely\nyou are to get a good summary.\nThe more"
+        " tokens you use, the more likely you are to get a good summary.\nThe more"
+        " tokens you use, the longer it will take to generate\nthe summary. The"
+        " more summaries you generate, the more it will cost you."
+    )
+
+
+def load_models_from_json(file_path: str) -> list[ModelConfig]:
+    """Load models from a JSON file."""
+    with open(file_path, "r", encoding="utf-8") as json_file:
+        models_data = json.load(json_file)
+    return [ModelConfig(**model_data) for model_data in models_data]
+
 
 OPEN_AI_CHAT_TYPE = "OpenAI Chat"
 OPEN_AI_INSTRUCT_TYPE = "OpenAI Instruct"
 ANTHROPIC_AI_TYPE = "Anthropic Chat"
-
-
-def load_models_from_json(file_path: str) -> ModelList:
-    """Load models from a JSON file."""
-    with open(file_path, "r", encoding="utf-8") as json_file:
-        models = json.load(json_file)
-    return models
-
 
 # Load models from JSON files
 OPEN_AI_CHAT_MODELS = load_models_from_json(
@@ -33,77 +90,20 @@ ANTHROPIC_AI_MODELS = load_models_from_json(
 )
 
 
-class ConfigLoader:
-    """Class for loading configuration variables."""
-
-    CONFIG_VARS: ConfigVars = ConfigVars(
-        ATTACH_DEBUGGER=False,
-        WAIT_FOR_CLIENT=False,
-        DEFAULT_DEBUG_PORT=8765,
-        DEBUGPY_HOST="localhost",
-        DEFAULT_CHUNK_TOKEN_LENGTH=2000,
-        DEFAULT_NUMBER_OF_SUMMARIES=3,  # reduce this to 1 for testing
-        DEFAULT_MAX_TOKEN_LENGTH=4096,  # max number of tokens for GPT-3
-        LOG_FILE_PATH="./logs/log.log",
-        LOG_COLORS={
-            "DEBUG": "cyan",
-            "INFO": "green",
-            "WARNING": "yellow",
-            "ERROR": "red",
-            "CRITICAL": "bold_red",
-        },
-        REDDIT_URL="https://www.reddit.com/r/OutOfTheLoop/comments/147fcdf/whats_going_on_with_subreddits_going_private_on/",  # noqa: E501 pylint: disable=line-too-long
-        LOG_NAME="reddit_gpt_summarizer_log",
-        APP_TITLE="Reddit Thread GPT Summarizer",
-        MAX_BODY_TOKEN_SIZE=500,
-        DEFAULT_QUERY_TEXT=(
-            f"(Todays Date: {datetime.now().strftime('%Y-%b-%d')}) Revise and improve"
-            " the article by incorporating relevant information from the comments."
-            " Ensure the content is clear, engaging, and easy to understand for a"
-            " general audience. Avoid technical language, present facts objectively,"
-            " and summarize key comments from Reddit. Ensure that the overall"
-            " sentiment expressed in the comments is accurately reflected. Optimize"
-            " for highly original content. Don't be trolled by joke comments. Ensure"
-            " its written professionally, in a way that is appropriate for the"
-            " situation. Format the document using markdown and include links from the"
-            " original article/reddit thread."
-        ),
-        DEFAULT_SYSTEM_ROLE="You are a helpful assistant.",
-        HELP_TEXT=(
-            "#### Help\nEnter the instructions for the model to follow.\nIt will"
-            " generate a summary of the Reddit thread.\nThe trick here is to experiment"
-            " with token lengths and number\nof summaries. The more summaries you"
-            " generate, the more likely\nyou are to get a good summary.\nThe more"
-            " tokens you use, the more likely you are to get a good summary.\nThe more"
-            " tokens you use, the longer it will take to generate\nthe summary. The"
-            " more summaries you generate, the more it will cost you."
-        ),
-    )
-
-    @classmethod
-    def get_config(cls) -> ConfigVars:
-        """Returns a dictionary with configuration parameters."""
-        return cls.CONFIG_VARS
-
-
-R = TypeVar("R")
-
-
 def with_config(func: Callable[..., R]) -> Callable[..., R]:
     """
-    A decorator to inject environment variables into a function.
+    A decorator to inject configuration variables into a function.
 
     Args:
-        func (Callable[..., ReturnType]): The function to be decorated.
+        func: The function to be decorated.
 
     Returns:
-        Callable[..., ReturnType]: The decorated function with injected environment
-        variables.
+        The decorated function with injected configuration variables.
     """
 
     @wraps(func)
-    def wrapper(*args: Tuple[Any, ...], **kwargs: Dict[str, Any]) -> R:
-        config: ConfigVars = ConfigLoader.get_config()
+    def wrapper(*args: Any, **kwargs: Any) -> R:
+        config = ConfigVars()
         return func(*args, config=config, **kwargs)
 
     return wrapper

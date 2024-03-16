@@ -1,14 +1,14 @@
 """OpenAI Connector."""
 
 import openai
-from config import OPEN_AI_CHAT_TYPE, ConfigLoader
+from config import OPEN_AI_CHAT_TYPE, ConfigVars
 from data_types.summary import GenerateSettings
 from env import EnvVarsLoader
 from log_tools import Logger
 from openai import OpenAI
 
 client = OpenAI()
-config = ConfigLoader.get_config()
+config = ConfigVars()
 app_logger = Logger.get_app_logger()
 env_vars = EnvVarsLoader.load_env()
 

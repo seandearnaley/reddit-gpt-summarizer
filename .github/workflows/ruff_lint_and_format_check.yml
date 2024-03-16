@@ -18,17 +18,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install toml-cli
-        run: pip install toml-cli
-
-      - name: Extract Ruff version and set as output
-        id: ruff-version
-        run: |
-          version=$(toml get pyproject.toml tool.poetry.group.dev.dependencies.ruff --default 'latest')
-          echo "ruff_version=$version" >> $GITHUB_OUTPUT
-
       - name: Install Ruff using the extracted version
-        run: pip install ruff==${{ steps.ruff-version.outputs.ruff_version }}
+        run: pip install ruff==0.3.3
 
       - name: Get changed Python files
         id: changed-files
