@@ -13,7 +13,7 @@ class RedditData(TypedDict):
 
 
 class GenerateSettings(TypedDict):
-    """Settings for generating a summary."""
+    """Settings for generating a summary ds."""
 
     query: str
     chunk_token_length: int
