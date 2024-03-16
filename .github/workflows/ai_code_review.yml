@@ -22,7 +22,9 @@ jobs:
         id: git_diff
         run: |
           git diff --name-only -U10 master...HEAD > diff.txt
-          echo "diff=$(cat diff.txt)" >> $GITHUB_OUTPUT
+          # Base64 encode the diff to safely handle new lines
+          DIFF_OUTPUT=$(base64 -w 0 diff.txt)
+          echo "diff=$DIFF_OUTPUT" >> $GITHUB_OUTPUT
 
       - name: AI Code Review
         uses: seandearnaley/ai-code-reviewer@v1
