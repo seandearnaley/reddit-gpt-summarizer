@@ -1,0 +1,20 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  code_review:
+    runs-on: ubuntu-latest
+    name: AI Code Review
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.2
+
+      - name: OpenAI Code Review
+        uses: seandearnaley/ai-code-reviewer@v1
+        with:
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
