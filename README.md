@@ -1,5 +1,9 @@
 # Reddit GPT Summarizer
 
+## 03/15/2024:
+
+Support for new Claude models, some tweaks throughout.
+
 ## 11/23/2023:
 
 Python updated to 3.11. We've also added support for GPT-4 128k and Claude 2.1 + Claude Instant v1.2. Make sure to update your dependencies accordingly.
