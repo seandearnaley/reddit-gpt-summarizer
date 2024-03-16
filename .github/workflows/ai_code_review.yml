@@ -14,6 +14,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: List directory contents
+        run: ls -la
+
       - name: Print working directory
         run: echo "The working directory is $GITHUB_WORKSPACE"
         # This step is optional and for debugging purposes.
