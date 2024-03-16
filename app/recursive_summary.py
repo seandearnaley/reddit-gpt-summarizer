@@ -8,7 +8,7 @@ NOTE: provided as a helper script for your GPT apps, not used by the Streamlit a
 
 import os
 import sys
-from typing import Any, Dict
+from typing import Any
 
 import openai
 from dotenv import load_dotenv
@@ -51,7 +51,7 @@ def load_text_file(filename: str) -> str:
     """
     script_directory = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_directory, filename)
-    with open(file_path, "r", encoding="utf-8") as file:
+    with open(file_path, encoding="utf-8") as file:
         file_read_data = file.read()
     return file_read_data
 
@@ -70,7 +70,7 @@ def write_text_file(text: str, filename: str) -> str:
 
 
 def recursive_summarization(
-    summary_size: int, chunk_text: str, prefix_text: str = ""
+    summary_size: int, chunk_text: str, prefix_text: str = "",
 ) -> str:
     """
     Recursive summarization function.
@@ -85,10 +85,10 @@ def recursive_summarization(
     )
 
     summary_string = summary_string.replace(
-        "[replace]", str(estimate_word_count(summary_size))
+        "[replace]", str(estimate_word_count(summary_size)),
     )
 
-    response: Dict[str, Any] = openai.completions.create(  # type: ignore
+    response: dict[str, Any] = openai.completions.create(  # type: ignore
         model=GPT_MODEL,
         prompt=summary_string,
         max_tokens=MAX_TOKENS
@@ -104,7 +104,7 @@ def recursive_summarization(
 
 
 def summarize_text(
-    text: str, max_token_length: int, max_tokens: int = MAX_TOKENS
+    text: str, max_token_length: int, max_tokens: int = MAX_TOKENS,
 ) -> str:
     """
     Summarize the prompt using GPT-3.
@@ -166,10 +166,10 @@ def cleanup_summary(text: str, summary_size: int, max_tokens: int = MAX_TOKENS) 
     )
 
     cleanup_prompt = cleanup_prompt.replace(
-        "[replace]", str(estimate_word_count(summary_size))
+        "[replace]", str(estimate_word_count(summary_size)),
     )
 
-    response: Dict[str, Any] = openai.completions.create(  # type: ignore
+    response: dict[str, Any] = openai.completions.create(  # type: ignore
         model="text-davinci-003",
         prompt=cleanup_prompt,
         best_of=3,

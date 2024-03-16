@@ -1,19 +1,18 @@
 """ Utility functions for the Large Language Models. """
 import math
 import re
-from typing import List
 
 import tiktoken
 from anthropic import Anthropic
 from config import ANTHROPIC_AI_TYPE, OPEN_AI_CHAT_TYPE
 
 
-def group_bodies_into_chunks(contents: str, token_length: int) -> List[str]:
+def group_bodies_into_chunks(contents: str, token_length: int) -> list[str]:
     """
     Concatenate the content lines into a list of newline-delimited strings
     that are less than token_length tokens long.
     """
-    results: List[str] = []
+    results: list[str] = []
     current_chunk = ""
 
     for line in contents.split("\n"):
