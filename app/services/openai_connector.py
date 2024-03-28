@@ -1,5 +1,5 @@
 """OpenAI Connector."""
-
+import os
 import openai
 from config import OPEN_AI_CHAT_TYPE, ConfigVars
 from data_types.summary import GenerateSettings
