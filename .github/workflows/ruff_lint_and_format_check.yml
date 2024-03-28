@@ -30,14 +30,9 @@ jobs:
       - name: Run Ruff Format and Lint Check
         if: steps.changed-files.outputs.all_changed_files != ''
         run: |
-          ruff format --check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
-          ruff check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
-        continue-on-error: true
-
-      - name: Report Ruff Check Status
-        if: steps.changed-files.outputs.all_changed_files != ''
-        run: |
-          if [ $? -ne 0 ]; then
+          ruff format --check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }} || FORMAT_STATUS=$?
+          ruff check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }} || CHECK_STATUS=$?
+          if [ -n "$FORMAT_STATUS" ] || [ -n "$CHECK_STATUS" ]; then
             echo "Ruff checks failed. Please fix the issues and re-submit the pull request."
             exit 1
           else
