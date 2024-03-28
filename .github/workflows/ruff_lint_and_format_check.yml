@@ -19,7 +19,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install Ruff using the extracted version
-        run: pip install ruff==0.3.3
+        run: pip install ruff==0.3.4
 
       - name: Get changed Python files
         id: changed-files
@@ -27,22 +27,17 @@ jobs:
         with:
           files: "**.py"
 
-      - name: Run Ruff Format Check
+      - name: Run Ruff Format and Lint Check
         if: steps.changed-files.outputs.all_changed_files != ''
-        id: ruff-format-check
-        run: ruff format --check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
-        continue-on-error: true
-
-      - name: Run Ruff Lint Check
-        if: steps.changed-files.outputs.all_changed_files != ''
-        id: ruff-lint-check
-        run: ruff check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          ruff format --check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
+          ruff check --config ./pyproject.toml ${{ steps.changed-files.outputs.all_changed_files }}
         continue-on-error: true
 
       - name: Report Ruff Check Status
         if: steps.changed-files.outputs.all_changed_files != ''
         run: |
-          if [ ${{ steps.ruff-format-check.outcome }} == 'failure' ] || [ ${{ steps.ruff-lint-check.outcome }} == 'failure' ]; then
+          if [ $? -ne 0 ]; then
             echo "Ruff checks failed. Please fix the issues and re-submit the pull request."
             exit 1
           else
