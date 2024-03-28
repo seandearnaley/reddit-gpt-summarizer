@@ -81,5 +81,6 @@ def complete_openai_text(
 
 
 
+
     except ValueError as err:
         return f"Value error: {err}"
