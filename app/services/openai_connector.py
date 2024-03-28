@@ -73,5 +73,13 @@ def complete_openai_text(
 
     except openai.OpenAIError as err:
         return f"OpenAI Error: {err}"
+
+
+
+
+
+
+
+
     except ValueError as err:
         return f"Value error: {err}"
