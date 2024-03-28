@@ -1,5 +1,5 @@
 """OpenAI Connector."""
-
+import os
 import openai
 from config import OPEN_AI_CHAT_TYPE, ConfigVars
 from data_types.summary import GenerateSettings
@@ -73,5 +73,14 @@ def complete_openai_text(
 
     except openai.OpenAIError as err:
         return f"OpenAI Error: {err}"
+
+
+
+
+
+
+
+
+
     except ValueError as err:
         return f"Value error: {err}"
