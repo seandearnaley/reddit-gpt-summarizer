@@ -212,7 +212,6 @@ def adjust_prompt_length(
     )
     prompt_token_count = num_tokens_from_string(
         complete_prompt,
-        settings["selected_model_type"],
     )
     while prompt_token_count > max_context_length and comment_group:
         comment_group = comment_group[:-1]
@@ -224,7 +223,6 @@ def adjust_prompt_length(
         )
         prompt_token_count = num_tokens_from_string(
             complete_prompt,
-            settings["selected_model_type"],
         )
     return complete_prompt
 
@@ -286,8 +284,7 @@ def generate_summary(
     )
 
     max_tokens = min(
-        max_context_length
-        - num_tokens_from_string(complete_prompt, settings["selected_model_type"]),
+        max_context_length - num_tokens_from_string(complete_prompt),
         settings["max_token_length"],
     )
     summary = complete_text(

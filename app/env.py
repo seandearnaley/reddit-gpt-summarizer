@@ -23,6 +23,7 @@ class EnvVars(TypedDict):
     REDDIT_PASSWORD: str | None
     REDDIT_USER_AGENT: str
     ANTHROPIC_API_KEY: str
+    GEMINI_API_KEY: str
 
 
 class EnvVarsLoader:
@@ -62,6 +63,7 @@ class EnvVarsLoader:
         reddit_password = os.getenv("REDDIT_PASSWORD")
         reddit_user_agent = os.getenv("REDDIT_USER_AGENT")
         anthropic_api_key = os.environ["ANTHROPIC_API_KEY"]
+        gemini_api_key = os.environ["GEMINI_API_KEY"]
 
         if org_id is None or api_key is None:
             err_msg = "Missing OpenAI API key or organization ID."
@@ -86,6 +88,7 @@ class EnvVarsLoader:
             "REDDIT_PASSWORD": reddit_password,
             "REDDIT_USER_AGENT": reddit_user_agent,
             "ANTHROPIC_API_KEY": anthropic_api_key,
+            "GEMINI_API_KEY": gemini_api_key,
         }
 
         EnvVarsLoader.validate_env_vars(env_vars)

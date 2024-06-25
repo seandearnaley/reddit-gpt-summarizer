@@ -1,7 +1,7 @@
 """OpenAI Connector."""
 
 import openai
-from config import OPEN_AI_CHAT_TYPE, ConfigVars
+from config import ConfigVars
 from data_types.summary import GenerateSettings
 from env import EnvVarsLoader
 from log_tools import Logger
@@ -35,38 +35,25 @@ def complete_openai_text(
         str: The completed text.
     """
 
-    is_chat = settings["selected_model_type"] == OPEN_AI_CHAT_TYPE
-
     try:
         common_args = {
             "model": settings["selected_model"],
             "max_tokens": max_tokens,
         }
 
-        response = (
-            openai.chat.completions.create(
-                **common_args,
-                messages=[
-                    {"role": "system", "content": settings["system_role"]},
-                    {"role": "user", "content": prompt},
-                ],
-            )
-            if is_chat
-            else openai.completions.create(
-                **common_args,
-                prompt=prompt,
-            )
+        response = openai.chat.completions.create(
+            **common_args,
+            messages=[
+                {"role": "system", "content": settings["system_role"]},
+                {"role": "user", "content": prompt},
+            ],
         )
 
         # if not isinstance(response, OpenAIObject):
         #     raise ValueError("Invalid Response")
 
         if response.choices:
-            content = (
-                response.choices[0].message.content
-                if is_chat
-                else response.choices[0].text
-            )
+            content = response.choices[0].message.content
             return content.strip()
 
         return "Response doesn't have choices or choices have no text."

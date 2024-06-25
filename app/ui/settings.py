@@ -2,12 +2,7 @@
 
 import streamlit as st
 from config import (
-    ANTHROPIC_AI_MODELS,
-    ANTHROPIC_AI_TYPE,
-    OPEN_AI_CHAT_MODELS,
-    OPEN_AI_CHAT_TYPE,
-    OPEN_AI_INSTRUCT_MODELS,
-    OPEN_AI_INSTRUCT_TYPE,
+    MODELS,
     ConfigVars,
 )
 from data_types.summary import GenerateSettings
@@ -16,20 +11,10 @@ from utils.streamlit_decorators import expander_decorator
 config = ConfigVars()
 
 
-def model_selection(col) -> tuple[str, str, int, int, int, int]:
+def model_selection(col) -> tuple[str, int, int, int, int]:
     """Render the model selection and return the selected model and settings."""
-    model_types = {
-        OPEN_AI_CHAT_TYPE: OPEN_AI_CHAT_MODELS,
-        OPEN_AI_INSTRUCT_TYPE: OPEN_AI_INSTRUCT_MODELS,
-        ANTHROPIC_AI_TYPE: ANTHROPIC_AI_MODELS,
-    }
 
-    selected_model_type = col.radio(
-        "Select Model Type",
-        options=list(model_types.keys()),
-    )
-
-    models = model_types[selected_model_type]
+    models = MODELS
     model_ids_sorted = {
         model.id: model for model in sorted(models, key=lambda x: x.name)
     }
@@ -43,7 +28,6 @@ def model_selection(col) -> tuple[str, str, int, int, int, int]:
     selected_model_config = model_ids_sorted[selected_model]
 
     return (
-        selected_model_type,
         selected_model,
         col.number_input(
             "Chunk Token Length",
@@ -86,7 +70,6 @@ def render_settings() -> GenerateSettings:
     col1, col2 = st.columns(2)
 
     (
-        selected_model_type,
         selected_model,
         chunk_token_length,
         max_number_of_summaries,
@@ -104,6 +87,5 @@ def render_settings() -> GenerateSettings:
         "max_number_of_summaries": max_number_of_summaries,
         "max_token_length": max_token_length,
         "selected_model": selected_model,
-        "selected_model_type": selected_model_type,
         "max_context_length": max_context_length,
     }

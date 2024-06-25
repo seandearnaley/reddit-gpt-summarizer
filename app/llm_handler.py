@@ -1,11 +1,9 @@
 """Handler for the LLM app."""
 
-from config import ANTHROPIC_AI_TYPE
 from data_types.summary import GenerateSettings
 from log_tools import Logger
 from pyrate_limiter import Duration, Limiter, RequestRate
-from services.anthropic_connector import complete_anthropic_text
-from services.openai_connector import complete_openai_text
+from services.litellm_connector import complete_litellm_text
 from utils.llm_utils import validate_max_tokens
 from utils.streamlit_decorators import error_to_streamlit
 
@@ -29,23 +27,10 @@ def complete_text(
 
     validate_max_tokens(max_tokens)
 
-    selected_model_type = settings["selected_model_type"]
-
-    is_anthropic = selected_model_type == ANTHROPIC_AI_TYPE
-
     try:
         limiter.ratelimit("complete_text")
 
-        # delegate to the appropriate completion method
-
-        if is_anthropic:
-            return complete_anthropic_text(
-                prompt=prompt,
-                max_tokens=max_tokens,
-                settings=settings,
-            )
-
-        return complete_openai_text(
+        return complete_litellm_text(
             prompt=prompt,
             max_tokens=max_tokens,
             settings=settings,

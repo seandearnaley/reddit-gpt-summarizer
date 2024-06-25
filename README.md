@@ -1,5 +1,9 @@
 # Reddit GPT Summarizer
 
+## 06/25/2024:
+
+Updated to LiteLLM for openai compatible connector, makes it easier to add support for a variety of models, now we're using a single models json file for our config.  Make sure you have appropriate API keys to use Google Gemini AI Studio.  GPT 4o, Sonnet 3.5 support.
+
 ## 03/15/2024:
 
 Support for new Claude models, some tweaks throughout.

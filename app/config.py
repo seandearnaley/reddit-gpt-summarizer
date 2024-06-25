@@ -8,7 +8,7 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 R = TypeVar("R")
 
@@ -23,11 +23,14 @@ class ModelConfig(BaseModel):
 
 
 class LogColors(BaseModel):
-    DEBUG: str = "cyan"
-    INFO: str = "green"
-    WARNING: str = "yellow"
-    ERROR: str = "red"
-    CRITICAL: str = "bold_red"
+    DEBUG: str = Field(default="cyan")
+    INFO: str = Field(default="green")
+    WARNING: str = Field(default="yellow")
+    ERROR: str = Field(default="red")
+    CRITICAL: str = Field(default="bold_red")
+
+    def get(self, key: str, default: str = "") -> str:
+        return getattr(self, key, default)
 
 
 class ConfigVars(BaseModel):
@@ -39,7 +42,7 @@ class ConfigVars(BaseModel):
     DEFAULT_NUMBER_OF_SUMMARIES: int = 3  # reduce this to 1 for testing
     DEFAULT_MAX_TOKEN_LENGTH: int = 4096  # max number of tokens for GPT-3
     LOG_FILE_PATH: str = "./logs/log.log"
-    LOG_COLORS: LogColors = LogColors()
+    LOG_COLORS: LogColors = Field(default_factory=LogColors)
     REDDIT_URL: str = "https://www.reddit.com/r/OutOfTheLoop/comments/147fcdf/whats_going_on_with_subreddits_going_private_on/"
     LOG_NAME: str = "reddit_gpt_summarizer_log"
     APP_TITLE: str = "Reddit Thread GPT Summarizer"
@@ -75,19 +78,9 @@ def load_models_from_json(file_path: str) -> list[ModelConfig]:
     return [ModelConfig(**model_data) for model_data in models_data]
 
 
-OPEN_AI_CHAT_TYPE = "OpenAI Chat"
-OPEN_AI_INSTRUCT_TYPE = "OpenAI Instruct"
-ANTHROPIC_AI_TYPE = "Anthropic Chat"
-
 # Load models from JSON files
-OPEN_AI_CHAT_MODELS = load_models_from_json(
-    "app/model_configs/open_ai_chat_models.json",
-)
-OPEN_AI_INSTRUCT_MODELS = load_models_from_json(
-    "app/model_configs/open_ai_instruct_models.json",
-)
-ANTHROPIC_AI_MODELS = load_models_from_json(
-    "app/model_configs/anthropic_ai_models.json",
+MODELS = load_models_from_json(
+    "app/model_configs/models.json",
 )
 
 
