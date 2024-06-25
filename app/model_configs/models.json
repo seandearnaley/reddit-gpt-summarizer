@@ -1,0 +1,90 @@
+[
+  {
+    "name": "Claude v3.5 claude-3-5-sonnet-20240620",
+    "id": "anthropic/claude-3-5-sonnet-20240620",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 4096,
+    "max_context_length": 200000
+  },
+  {
+    "name": "Claude v3 claude-3-sonnet-20240229",
+    "id": "anthropic/claude-3-sonnet-20240229",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 4096,
+    "max_context_length": 200000
+  },
+  {
+    "name": "Claude v3 claude-3-opus-20240229",
+    "id": "anthropic/claude-3-opus-20240229",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 4096,
+    "max_context_length": 200000
+  },
+  {
+    "name": "Claude v3 claude-3-haiku-20240307",
+    "id": "anthropic/claude-3-haiku-20240307",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 2,
+    "max_token_length": 4096,
+    "max_context_length": 200000
+  },
+  {
+    "name": "GPT 3.5 Turbo",
+    "id": "openai/gpt-3.5-turbo",
+    "default_chunk_token_length": 2000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 2048,
+    "max_context_length": 4096
+  },
+  {
+    "name": "GPT 3.5 Turbo 16k",
+    "id": "openai/gpt-3.5-turbo-16k",
+    "default_chunk_token_length": 8192,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4096,
+    "max_context_length": 16384
+  },
+  {
+    "name": "GPT 4",
+    "id": "openai/gpt-4",
+    "default_chunk_token_length": 4096,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4096,
+    "max_context_length": 8192
+  },
+  {
+    "name": "GPT 4o",
+    "id": "openai/gpt-4o",
+    "default_chunk_token_length": 32768,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4096,
+    "max_context_length": 128000
+  },
+  {
+    "name": "GPT 4-turbo Preview",
+    "id": "openai/gpt-4-turbo-preview",
+    "default_chunk_token_length": 32768,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4096,
+    "max_context_length": 128000
+  },
+  {
+    "name": "Gemini 1.5 Pro (latest)",
+    "id": "gemini/gemini-1.5-pro-latest",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4096,
+    "max_context_length": 1000000
+  },
+  {
+    "name": "Gemini 1.5 Flash (latest)",
+    "id": "gemini/gemini-1.5-flash-latest",
+    "default_chunk_token_length": 50000,
+    "default_number_of_summaries": 3,
+    "max_token_length": 4096,
+    "max_context_length": 1000000
+  }
+]

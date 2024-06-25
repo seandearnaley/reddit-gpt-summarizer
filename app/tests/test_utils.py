@@ -3,7 +3,6 @@
 import os
 
 import tiktoken
-from config import OPEN_AI_CHAT_TYPE
 from utils.common import generate_filename, get_timestamp, save_output
 from utils.llm_utils import num_tokens_from_string
 
@@ -14,7 +13,7 @@ def test_num_tokens_from_string() -> None:
     encoding_name: str = "gpt2"
 
     tiktoken.get_encoding(encoding_name)
-    result: int = num_tokens_from_string(string, OPEN_AI_CHAT_TYPE)
+    result: int = num_tokens_from_string(string)
 
     assert result == 3
 

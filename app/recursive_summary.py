@@ -134,7 +134,6 @@ def summarize_text(
             summary_size,
             settings={
                 "selected_model": GPT_MODEL,
-                "selected_model_type": "chat",
                 "system_role": "Please summarize the following text:",
             },
         )
